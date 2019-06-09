@@ -34,20 +34,23 @@ namespace GraphSeg
     return result;
   }
 
-  template <class ForwardIterator>
-  void unique(ForwardIterator _begin, ForwardIterator _last)
+  template <class T>
+  void unique(set<T>& target)
   {
-    auto prev = *_begin;
-    vector<decltype(_begin)> deletable;
-    _begin++;
-    while(_begin != _last)
+    auto _begin = target.begin();
+    auto _last = target.end();
+    while(true)
     {
+      auto prev = *_begin;
+      ++_begin;
       if (prev == *_begin)
       {
-        deletable.emplace_back(_begin);
+        target.erase(_begin);
       }
-      prev = *_begin;
-      _begin++;      
+      if (_begin == _last)
+      {
+        break;
+      }
     }
   }
 
@@ -63,8 +66,8 @@ namespace GraphSeg
     /// </summary>
     void SetSentence(const string& s)
     {
-      sentence_idx[node_idx] = s;
       ++node_idx;
+      sentence_idx.emplace_back(s);
       graph.emplace_back(vector<Edge>());
     }
 
@@ -74,7 +77,7 @@ namespace GraphSeg
     void SetSentence(string&& s)
     {
       ++node_idx;
-      sentence_idx.emplace_back(s);
+      sentence_idx.emplace_back(std::move(s));
       graph.emplace_back(vector<Edge>());
     }
 
@@ -104,15 +107,13 @@ namespace GraphSeg
       int i = 0;
       std::generate(tmp.begin(), tmp.end(), [&i](){ ++i; return i; });
       BronKerbosch(set<Vertex>(), set<Vertex>(tmp.begin(), tmp.end()), set<Vertex>());
-      std::sort(max_cliques.begin(), max_cliques.end());
-      auto result = std::unique(max_cliques.begin(), max_cliques.end());
-      max_cliques.erase(result, max_cliques.end());
+      unique(max_cliques);
     }
 
     /// <summary>
     /// get maximum clique
     /// </summary>
-    set<VertexSet> GetMaximumClique()
+    set<VertexSet> GetMaximumClique() const noexcept
     {
       return max_cliques;
     }
@@ -121,17 +122,27 @@ namespace GraphSeg
     void BronKerbosch(set<Vertex> clique, set<Vertex> candidates, set<Vertex> excluded)
     {
       if (candidates.empty() && excluded.empty())
-      {
+      { 
         max_cliques.insert(clique);
         return;
       }
-      for (const auto& v: candidates)
+
+      set<Vertex> candidates_tmp;
+      for (auto itr2 = candidates.begin(); itr2 != candidates.end(); ++itr2)
       {
+        if (candidates_tmp.find(*itr2) != candidates_tmp.end()) break;
+        auto v = *itr2;
         auto clique_t = clique + set<Vertex>({v});
         auto candidates_t = candidates & GetNeighbors(v);
         auto excluded_t = excluded & GetNeighbors(v);
+
+        assert(clique_t.size() > clique.size());
+        assert(candidates_t.size() <= candidates.size());
+        assert(excluded_t.size() <= excluded.size());
+
         BronKerbosch(clique_t, candidates_t, excluded_t);
-        deleteWithVal(candidates, v);
+
+        candidates_tmp.insert(v);  
         excluded.insert(v);
       }
     }
@@ -144,18 +155,6 @@ namespace GraphSeg
         tmp.emplace(node.first);
       }
       return tmp;
-    }
-
-    void deleteWithVal(set<Vertex>& target, Vertex value)
-    {
-      for(auto itr = target.begin(); itr != target.end(); ++itr)
-      {
-        if (*itr == value)
-        {
-          target.erase(itr);
-          return;
-        }
-      }
     }
 
     vector<vector<Edge>> graph;
