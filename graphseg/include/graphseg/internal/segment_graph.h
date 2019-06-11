@@ -1,8 +1,8 @@
 #ifndef GRAPHSEG_CPP_GRAPHSEG_SEGMENT_GRAPH_H
 #define GRAPHSEG_CPP_GRAPHSEG_SEGMENT_GRAPH_H 
-// #ifdef DEBUG
-#include <iostream>
-// #endif
+#ifdef DEBUG
+  #include <iostream>
+#endif
 #include <set>
 #include <vector>
 #include <string>
@@ -32,26 +32,6 @@ namespace GraphSeg
     set<T> result;
     set_union(v1.begin(), v1.end(), v2.begin(), v2.end(), inserter(result, result.end()));
     return result;
-  }
-
-  template <class T>
-  void unique(set<T>& target)
-  {
-    auto _begin = target.begin();
-    auto _last = target.end();
-    while(true)
-    {
-      auto prev = *_begin;
-      ++_begin;
-      if (prev == *_begin)
-      {
-        target.erase(_begin);
-      }
-      if (_begin == _last)
-      {
-        break;
-      }
-    }
   }
 
   class SegmentGraph
@@ -107,13 +87,12 @@ namespace GraphSeg
       int i = 0;
       std::generate(tmp.begin(), tmp.end(), [&i](){ ++i; return i; });
       BronKerbosch(set<Vertex>(), set<Vertex>(tmp.begin(), tmp.end()), set<Vertex>());
-      unique(max_cliques);
     }
 
     /// <summary>
     /// get maximum clique
     /// </summary>
-    set<VertexSet> GetMaximumClique() const noexcept
+    set<VertexSet>& GetMaximumClique() &
     {
       return max_cliques;
     }
@@ -127,6 +106,7 @@ namespace GraphSeg
         return;
       }
 
+      // TODO(rei.shimizu): It may be invalid solution to resolve iterator breakdown problem
       set<Vertex> candidates_tmp;
       for (auto itr2 = candidates.begin(); itr2 != candidates.end(); ++itr2)
       {
