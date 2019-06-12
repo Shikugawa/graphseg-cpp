@@ -3,10 +3,14 @@
 #ifdef DEBUG
   #include <iostream>
 #endif
+#include <simdjson/jsonparser.h>
+#include <stdexcept>
+#include <exception>
 #include <string>
 #include <algorithm>
 #include <vector>
 #include <cstdio>
+#include <unordered_map>
 #include <memory>
 #include <cstdlib>
 
@@ -14,15 +18,10 @@
 
 namespace GraphSeg
 {
-  using std::min, std::string, std::vector;
-
   static constexpr auto home = getenv('HOME');
+  static constexpr auto DIM = 300;
 
-  struct Word
-  {
-    string s;
-    vector<double> embedding;
-  };
+  using std::min, std::string, std::vector, std::unordered_map, std::array, std::pow, std::sqrt;
 
   class Sentence
   {
@@ -48,11 +47,24 @@ namespace GraphSeg
       return result;
     }
 
+    vector<string>& getTerms() const& { return terms; }
+
   private:
     template <class ForwardIterator>
     double CosineSimilarity(ForwardIterator _abegin, ForwardIterator _aend, ForwardIterator _bbegin, ForwardIterator _bend)
     {
-      return 0.001;
+      double q, d, qd;
+      auto a = _abegin;
+      auto b = _bbegin;
+      while(a != _aend && b != _bend)
+      {
+        q += pow(*a, 2);
+        d += pow(*b, 2);
+        qd += (*a)*(*b);
+        ++a;
+        ++b;
+      }
+      return qd/(sqrt(q)*sqrt(d));
     }
 
     double InformationContent()
@@ -60,28 +72,74 @@ namespace GraphSeg
       return 0.001;
     }
 
-    vector<Word> words;
+    vector<string> terms;
   };
 
-  class SentenceSet
+  // TODO: singletonにしたい
+  class WordVectorManager 
   {
   public:
-    SegmentSet() = default;
+    using WordEmbedding = array<double, DIM>;
+
+    Vectorizer() = default;
+    
+    Vectorizer(const Vectorizer&) = delete;
+
+    void Vectorizer(const Vectorizer&)
+    {}
+
+    void addSentenceWords(const Sentence& s)
+    {
+      string chunk;
+      for(size_t i = 0; i < s.size(); ++i)
+      {
+        if (s[i] == " "){
+          if (!exists(s[i])) {
+            words.insert({chunk, WordEmbedding(0.0)});
+          }
+          chunk.clear();
+          continue;
+        }
+        chunk += s[i];
+      }
+      sentences.emplace_back(s);
+    }
 
     void getWordEmbeddings()
     {
       string out;
       int code;
       // TODO: python環境を複数用意する
-      exec(home + '/.pyenv/shims/python', out, code);
+      auto wordvector = exec(home + '/.pyenv/shims/python', out, code);
+      ParsedJson pj;
+      pj.allocateCapacity(wordvector.size());
+      if ((res = json_parse(wordvector, pj)) != 0) {
+        throw std::runtime_error(simdjson::errorMsg(res));
+      }
+      for(const auto term: getjsonkeys(pj))
+      {
+        auto vec = tocppvector(pj[term]);
+        term
+      }
     }
+
   private:
-    vector<Sentence> sentences;
-  }
+    bool exists(const string& term)
+    {
+      for(const auto& _w: words)
+      {
+        if (_w.term == term)
+        { return true; }
+      }
+      return false;
+    }
+    unordered_map<string, WordEmbedding> words;
+  };
 
   // Reference: http://inemaru.hatenablog.com/entry/2018/01/28/215250
   // TODO: 標準入力を受け取れるようにする
-  bool exec(const char* cmd. string& stdout, int& code)
+  // TODO: ポインタか参照返すようにしたい
+  string exec(const char* cmd. string& stdout, int& code)
   {
     std::shared_ptr<FILE> pipe(_popen(cmd, "r"), [&](FILE* p) {code = _pclose(p);});
     if(!pipe) return false;
