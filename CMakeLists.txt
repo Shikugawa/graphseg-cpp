@@ -41,5 +41,6 @@ find_package(Boost 1.65.0.0 REQUIRED)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 # =======================
 
-add_subdirectory(graphseg)
+
+# add_subdirectory(graphseg)
 add_subdirectory(src)
