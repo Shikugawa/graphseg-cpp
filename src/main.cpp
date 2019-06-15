@@ -1,5 +1,4 @@
-#include <rapidjson/document.h>
-// #include <graphseg/internal/segment_graph.h>
+#include <graphseg/internal/segment_graph.h>
 #include <set>
 #include <iostream>
 #include <string>
@@ -10,16 +9,6 @@ using namespace rapidjson;
 
 int main()
 {
-  std::string s = "{\"test\": [100.0, 100.0, 100.0],\"dog\": [100.0, 100.0, 100.0],\"cat\": [100.0, 100.0, 100.0],\"bird\": [100.0, 100.0, 100.0]}";
-  Document doc;
-  doc.Parse(s.c_str());
-  auto& v = doc["test"];
-  for(SizeType i = 0; i < v.Size(); ++i)
-  {
-    std::cout << v.GetDouble() << std::endl;
-  }
-  // parsing is done!
-  //
   // SegmentGraph sg(3);
   // sg.SetSentence("This is a pen");
   // sg.SetSentence("This is a pen");

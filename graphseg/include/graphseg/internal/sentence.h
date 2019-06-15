@@ -3,8 +3,7 @@
 #ifdef DEBUG
   #include <iostream>
 #endif
-#include <simdjson/jsonparser.h>
-
+#include <rapidjson/document.h>
 #include <stdexcept>
 #include <exception>
 #include <string>
@@ -24,6 +23,7 @@ namespace GraphSeg
   static constexpr auto DIM = 300;
 
   using std::min, std::string, std::vector, std::unordered_map, std::array, std::pow, std::sqrt. std::tuple, std::log;
+  using namespace rapidjson;
 
   class Sentence
   {
@@ -35,15 +35,15 @@ namespace GraphSeg
     /// <summary>
     /// get sentence similarity with cosine similarity
     /// </summary>
-    double getSimilarity(const Sentence& sg, const WordVectorManager& wvm)
+    double GetSimilarity(const Sentence& sg, const WordVectorManager& wvm)
     {
       double result = 0.0;
       for(const auto& term: this->terms)
       {
         for(const auto& target_term: sg->terms)
         {
-          auto v1 = wvm.getVector(term);
-          auto v2 = wvm.getVector(term);
+          auto v1 = wvm.GetVector(term);
+          auto v2 = wvm.GetVector(term);
           assert(v1.size() == v2.size());
           auto sim = CosineSimilarity(v1.cbegin(), v1.cend(), v2.cbegin(), v2.cend(), wvm);
           result += sim*min({InformationContent(term, wvm), InformationContent(target_term, wvm)});
@@ -55,7 +55,7 @@ namespace GraphSeg
     /// <summary>
     /// get all terms in all sentences
     /// </summary>
-    vector<string>& getTerms() const& { return terms; }
+    vector<string>& GetTerms() const& { return terms; }
 
   private:
     template <class ForwardIterator>
@@ -80,7 +80,7 @@ namespace GraphSeg
       double result;
       for (const auto& term: terms)
       {
-        result += wvm.getFrequency(term);
+        result += wvm.GetFrequency(term);
       }
     }
 
@@ -103,7 +103,7 @@ namespace GraphSeg
     /// <summary>
     /// append word to word list from one sentence
     /// </summary>
-    void addSentenceWords(const Sentence& s)
+    void AddSentenceWords(const Sentence& s)
     {
       string chunk;
       for(size_t i = 0; i < s.size(); ++i)
@@ -130,84 +130,41 @@ namespace GraphSeg
     /// <summary>
     /// get all word embedding from trained word data (Google News Dataset)
     /// </summary>
-    void getWordEmbeddings()
+    void GetWordEmbeddings()
     {
       string out;
       int code;
       // TODO: python環境を複数用意する
       auto wordvector = exec(home + '/.pyenv/shims/python', out, code);
-      ParsedJson pj;
-      pj.allocateCapacity(wordvector.size());
-      if ((res = json_parse(wordvector, pj)) != 0)
+      document doc;
+      doc.Parse(wordvector);
+      for (auto itr = document.MemberBegin(); itr != document.MembedEnd(); ++itr)
       {
-        throw std::runtime_error(simdjson::errorMsg(res));
+        const auto term = itr->name.GetString();
+        const auto vector = doc[term];
+        array<double, DIM> word_vector;
+        for (SizeType i = 0; i < vector.size(); ++i)
+        {
+          word_vector[static_cast<size_t>(i)] = vector[i].GetDouble();
+        }
+        words[term].first = word_vector;
       }
-      compute_dump(pj);
     }
 
     /// <summary>
     /// get word vector
     /// </summary>
-    WordEmbedding& getVector(const string& term) const& { return words[term][0]; }
+    WordEmbedding& GetVector(const string& term) const& { return words[term][0]; }
 
     /// <summary>
     /// get word frequency from all sentences
     /// </summary>
-    double getFrequency(const string& term)
+    double GetFrequency(const string& term)
     {
       return words[term][1] / termLength;
     }
 
   private:
-    
-    /// <summary>
-    /// simdjson parsing
-    /// Reference: https://github.com/lemire/simdjson/blob/master/README.md
-    /// </summary>
-    void compute_dump(ParsedJson::iterator& pjh)
-    {
-      if (pjh.is_object()) 
-      {
-        std::cout << "{";
-        if (pjh.down())
-        {
-          pjh.print(std::cout); // must be a string
-          std::cout << ":";
-          pjh.next();
-          compute_dump(pjh); // let us recurse
-          while (pjh.next()) 
-          {
-            std::cout << ",";
-            pjh.print(std::cout);
-            std::cout << ":";
-            pjh.next();
-            compute_dump(pjh); // let us recurse
-          }
-          pjh.up();
-        }
-        std::cout << "}";
-      }
-      else if (pjh.is_array()) 
-      {
-        std::cout << "[";
-        if (pjh.down()) 
-        {
-          compute_dump(pjh); // let us recurse
-          while (pjh.next()) 
-          {
-            std::cout << ",";
-            compute_dump(pjh); // let us recurse
-          }
-          pjh.up();
-        }
-        std::cout << "]";
-      }
-      else
-      {
-        pjh.print(std::cout); // just print the lone value
-      }
-    }
-
     bool exists(const string& term)
     {
       for(const auto& _w: words)
