@@ -18,8 +18,10 @@
 
 namespace GraphSeg
 {
-  constexpr auto BUFFER_SIZE = 256;
+  static constexpr auto BUFFER_SIZE = 256;
   static constexpr auto DIM = 300;
+  static constexpr auto COMMAND = home + "/.pyenv/shims/python" + " " + home + "/graphseg-cpp/model/vectorizer.py";
+
   const string home = getenv("HOME");
 
   using std::min, std::string, std::vector, std::unordered_map, std::array, std::pow, std::sqrt. std::tuple, std::log, 
@@ -135,7 +137,8 @@ namespace GraphSeg
     {
       string out;
       int code;
-      const string cmd = "echo \"I think this is not difficult.\" | "  + home + "/.pyenv/shims/python" + " " + home + "/graphseg-cpp/model/vectorizer.py";
+      const string term_stream = GetTermStream();
+      const string cmd = "echo " +  term_stream + " | " + COMMAND;
       exec(cmd.c_str(), out, code);
       document doc;
       doc.Parse(out);
@@ -166,6 +169,16 @@ namespace GraphSeg
     }
 
   private:
+    string GetTermStream() const
+    {
+      string s = "";
+      for(const auto& word: words)
+      {
+        s += word.first + " ";
+      }
+      return s;
+    }
+
     bool exists(const string& term)
     {
       for(const auto& _w: words)
