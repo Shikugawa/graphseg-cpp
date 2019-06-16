@@ -11,18 +11,19 @@
 #include <vector>
 #include <cstdio>
 #include <unordered_map>
+#include <array>
 #include <memory>
 #include <tuple>
 #include <cstdlib>
 
-#define BUFFER_SIZE 256
-
 namespace GraphSeg
 {
-  static constexpr auto home = getenv('HOME');
+  constexpr auto BUFFER_SIZE = 256;
   static constexpr auto DIM = 300;
+  const string home = getenv("HOME");
 
-  using std::min, std::string, std::vector, std::unordered_map, std::array, std::pow, std::sqrt. std::tuple, std::log;
+  using std::min, std::string, std::vector, std::unordered_map, std::array, std::pow, std::sqrt. std::tuple, std::log, 
+        std::shared_ptr;
   using namespace rapidjson;
 
   class Sentence
@@ -134,10 +135,10 @@ namespace GraphSeg
     {
       string out;
       int code;
-      // TODO: python環境を複数用意する
-      auto wordvector = exec(home + '/.pyenv/shims/python', out, code);
+      const string cmd = "echo \"I think this is not difficult.\" | "  + home + "/.pyenv/shims/python" + " " + home + "/graphseg-cpp/model/vectorizer.py";
+      exec(cmd.c_str(), out, code);
       document doc;
-      doc.Parse(wordvector);
+      doc.Parse(out);
       for (auto itr = document.MemberBegin(); itr != document.MembedEnd(); ++itr)
       {
         const auto term = itr->name.GetString();
@@ -181,22 +182,20 @@ namespace GraphSeg
     unordered_map<string, tuple<WordEmbedding, unsigned int>> words;
   };
 
-  // Reference: http://inemaru.hatenablog.com/entry/2018/01/28/215250
-  // TODO: 標準入力を受け取れるようにする
-  // TODO: ポインタか参照返すようにしたい
-  string exec(const char* cmd. string& stdout, int& code)
+  void exec(const char* cmd, string& stdout, int& code)
   {
-    std::shared_ptr<FILE> pipe(_popen(cmd, "r"), [&](FILE* p) {code = _pclose(p);});
-    if(!pipe) return false;
-    std::array<char, BUFFER_SIZE> buf;
+    shared_ptr<FILE> pipe(popen(cmd, "r"), [&](FILE* p) {code = pclose(p);});
+    if(!pipe) return;
+    array<char, BUFFER_SIZE> buf;
     while(!feof(pipe.get()))
     {
       if(fgets(buf.data(), buf.size(), pipe.get()) != nullptr)
       {
+        cout << buf.data() << endl;
         stdout += buf.data();
       }
     }
-    return true;
+    return;
   }
 } // GraohSeg
 
