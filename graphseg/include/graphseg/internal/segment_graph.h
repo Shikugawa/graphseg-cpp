@@ -3,6 +3,7 @@
 #ifdef DEBUG
   #include <iostream>
 #endif
+#include "sentence.h"
 #include <set>
 #include <vector>
 #include <string>
@@ -44,7 +45,7 @@ namespace GraphSeg
     /// <summary>
     /// set sentence graph (lvalue)
     /// </summary>
-    void SetSentence(const string& s)
+    void SetSentence(const Sentence& s)
     {
       ++node_idx;
       sentence_idx.emplace_back(s);
@@ -54,7 +55,7 @@ namespace GraphSeg
     /// <summary>
     /// set sentence graph (rvalue)
     /// </summary>
-    void SetSentence(string&& s)
+    void SetSentence(Sentence&& s)
     {
       ++node_idx;
       sentence_idx.emplace_back(std::move(s));
@@ -138,7 +139,7 @@ namespace GraphSeg
     }
 
     vector<vector<Edge>> graph;
-    vector<string> sentence_idx;
+    vector<Sentence> sentence_idx;
     set<VertexSet> max_cliques;
     Vertex node_idx = 0;
     Vertex max_sentence_size;

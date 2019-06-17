@@ -1,40 +1,33 @@
-#include <set>
+#include "graphseg/graphseg.h"
+#include <vector>
 #include <iostream>
-#include <string>
 #define DEBUG
 
 using namespace std;
-
+using namespace GraphSeg;
 
 int main()
 {
-  
-  SegmentGraph sg(3);
-  sg.SetSentence("This is a pen");
-  sg.SetSentence("This is a pen");
-  sg.SetSentence("This is a pen");
-  sg.SetSentence("This is a pen");
-  sg.SetSentence("This is a pen");
-  sg.SetSentence("This is a pen");
-  sg.SetSentence("This is a pen");
-  sg.SetSentence("This is a pen");
-  sg.SetSentence("This is a pen");
-  sg.SetEdge(1, 2, 30);
-  sg.SetEdge(2, 3, 15);
-  sg.SetEdge(3, 1, 15);
-  sg.SetEdge(1, 2, 20);
-  sg.SetEdge(1, 6, 10);
-  sg.SetEdge(2, 6, 5);
-  sg.SetEdge(2, 7, 20);
-  sg.SetEdge(2, 4, 10);
-  sg.SetEdge(7, 4, 15);
-  sg.SetEdge(6, 3, 30);
-  sg.SetEdge(3, 4, 8);
-  sg.SetEdge(4, 5, 20);
-  sg.SetEdge(3, 5, 18);
-  sg.SetMaximumClique();
+  // Set texts
+  vector<Sentence> s = {
+   Sentence("This is a pen"),
+   Sentence("I want to play soccer"),
+   Sentence("soccer is very fun")
+  }
 
-  for(const auto& v: sg.GetMaximumClique())
+  // Word vector instantiation
+  WordVectorManager wvm;
+  for(const auto& _s : s)
+  {
+    wvm.AddSentenceWords(_s);
+  }
+  wvm.GetWordEmbeddings();
+
+  GraphManager gm(sg(3));
+  gm.SetVertices(s)
+  gm.SetEdges(wvm);
+  auto graph = sg.GetGraph()
+  for(const auto& v: graph.GetMaximumClique())
   {
     std::cout << "{";
     for(const auto& r: v)

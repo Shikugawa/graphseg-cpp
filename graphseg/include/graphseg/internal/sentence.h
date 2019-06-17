@@ -100,7 +100,7 @@ namespace GraphSeg
     
     Vectorizer(const Vectorizer&) = delete;
 
-    void Vectorizer(const Vectorizer&)
+    Vectorizer& operator=(const Vectorizer&)
     {}
 
     /// <summary>
