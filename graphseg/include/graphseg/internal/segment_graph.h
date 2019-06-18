@@ -8,12 +8,14 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <iostream>
+#include <ostream>
 #include <iterator>
 #include <unordered_map>
 
 namespace GraphSeg
 {
-  using std::vector, std::make_pair, std::set, std::string, std::set_intersection, std::set_union, std::inserter;
+  using std::vector, std::make_pair, std::set, std::string, std::set_intersection, std::set_union, std::inserter, std::basic_ostream;
   using Vertex = unsigned int;
   using VertexSet = set<Vertex>;
   using Edge = std::pair<Vertex, double>;
@@ -97,6 +99,10 @@ namespace GraphSeg
       return max_cliques;
     }
 
+    const Sentence& GetSentence(size_t idx) const&{ return sentence_idx[idx]; }
+  
+    const vector<Edge>& operator[](size_t idx) const& { return graph[idx]; }
+
   private:
     void BronKerbosch(set<Vertex> clique, set<Vertex> candidates, set<Vertex> excluded)
     {
@@ -143,6 +149,21 @@ namespace GraphSeg
     Vertex node_idx = 0;
     Vertex max_sentence_size;
   };
+
+  template <typename CharT, typename Traits>
+  basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, const SegmentGraph& sg)
+  {
+    for(size_t i = 0; i < sg.GetGraphSize(); ++i)
+    {
+      os << i << ": " << sg.GetSentence(i).GetText() << " => " << "{";
+      for(const auto& p: sg[i])
+      {
+        os << "{" << p.first << ", " << p.second << "},";
+      }
+      os << "}" << std::endl;
+    }
+    return os;
+  }
 } // namespace GraphSeg
 
 #endif

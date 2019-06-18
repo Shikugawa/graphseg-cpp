@@ -2,6 +2,7 @@
 #define GRAPHSEG_CPP_GRAPHSEG_SENTENCE_H
 #include <string>
 #include <vector>
+#include <iostream>
 
 namespace GraphSeg
 {
@@ -28,6 +29,7 @@ namespace GraphSeg
         }
         item += *itr;
       }
+      terms.emplace_back(item);
     }
 
     /// <summary>
@@ -55,6 +57,8 @@ namespace GraphSeg
     /// get term from index
     /// </summary>
     const string& operator[](size_t idx) const& { return terms[idx]; }
+
+    const string& GetText() const& { return sentence; }
   
   private:
     string sentence;

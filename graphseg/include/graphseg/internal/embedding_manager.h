@@ -11,6 +11,8 @@
 #include <memory>
 #include <array>
 
+#include <iostream>
+
 namespace GraphSeg {
   using namespace rapidjson;
   using std::unordered_map, std::shared_ptr, std::array, std::min, std::sqrt, std::log, 
@@ -56,6 +58,7 @@ namespace GraphSeg {
 
     /// <summary>
     /// append word to word list from one sentence
+    /// TODO: sentence should be const
     /// </summary>
     void AddSentenceWords(Sentence& s)
     {
@@ -83,18 +86,16 @@ namespace GraphSeg {
       const string cmd = "echo " +  term_stream + " | " + COMMAND;
       auto result = exec(cmd.c_str(), code);
       Document doc;
-      doc.Parse(result.c_str());
+      const auto parse_result = doc.Parse(result.c_str()).HasParseError();
       for (auto itr = doc.MemberBegin(); itr != doc.MemberEnd(); ++itr)
       {
         const auto term = itr->name.GetString();
         assert(doc.HasMember(term));
         const auto& get_vector = doc[term];
-        array<double, DIM> word_vector;
         for (SizeType i = 0; i < DIM; ++i)
         {
-          word_vector[static_cast<size_t>(i)] = get_vector[i].GetDouble();
+          get<0>(words[term])[static_cast<size_t>(i)] = get_vector[i].GetDouble();
         }
-        get<0>(words[term]) = word_vector;
       }
     }
 
@@ -109,7 +110,7 @@ namespace GraphSeg {
     /// </summary>
     double GetFrequency(const string& term)
     {
-      // return words[term][1] / termLength;
+      return 0.1;
     }
 
 
@@ -123,8 +124,9 @@ namespace GraphSeg {
       {
         for(const auto& target_term: sg2.GetTerms())
         {
-          auto& v1 = this->GetVector(term);
-          auto& v2 = this->GetVector(term);
+          const auto& v1 = this->GetVector(term);
+          const auto& v2 = this->GetVector(term);
+          if (IsStopWord(v1) || IsStopWord(v2)) continue;
           assert(v1.size() == v2.size());
           auto sim = CosineSimilarity(v1.cbegin(), v1.cend(), v2.cbegin(), v2.cend());
           result += sim*min({InformationContent(term), InformationContent(target_term)});
@@ -151,12 +153,10 @@ namespace GraphSeg {
       return qd/(sqrt(q)*sqrt(d));
     }
 
-    // TODO
+    // TODO: frequency
     double InformationContent(const string& term)
     {
-      // double result;
-      // result += wvm.GetFrequency(term);
-      // return result;
+      return -log(GetFrequency(term) + 1 / 1000000 + 4.0);
     }
 
     string GetTermStream() const
@@ -189,6 +189,18 @@ namespace GraphSeg {
         wm[j] = 0.0;
       }
       words.insert({term, make_tuple(wm, 1)});
+    }
+
+    /// <summary>
+    /// 零ベクトルならStop Wordであるとみなす
+    /// </summary>
+    bool IsStopWord(const array<double, DIM>& d)
+    {
+      for(size_t i = 0; i < DIM; ++i)
+      {
+        if (d[i] != 0.0) return false;
+      }
+      return true;
     }
 
     unsigned int termLength;
