@@ -2,16 +2,17 @@
 #define GRAPHSEG_INTERNAL_GRAPHSEG_MANAGER_H
 
 #include "segment_graph.h"
+#include "embedding_manager.h"
 #include "sentence.h"
 #include <vector>
 
 namespace GraphSeg
 {
+  using std::vector;
+
   class GraphManager
   {
   public:
-    using std::vector;
-
     GraphManager(SegmentGraph& sg) : graph(sg)
     {}
 
@@ -27,7 +28,7 @@ namespace GraphSeg
       std::copy(ss.begin(), ss.end(), sentences);
     }
 
-    void SetEdges(const WordVectorManager& wvm)
+    void SetEdges(const EmbeddingManager& em)
     {
       const auto graph_size = graph.GetGraphSize();
       vector<vector<uint8_t>> memo(graph_size);
@@ -41,19 +42,20 @@ namespace GraphSeg
         for (size_t j = 0; j < graph_size; ++j)
         {
           if (memo[i][j] == 1 && memo[j][i] == 1) continue;
-          graph.SetEdge(i, j, sentences[i].GetSimilarity(sentences[j], wvm));
+          graph.SetEdge(i, j, embedding.GetSimilarity(sentences[i], sentences[j]));
           memo[i][j] = 1;
           memo[j][i] = 1;
         }
       }
     }
 
-    SegmentGraph& GetGraph() const& { return graph; }
+    const SegmentGraph& GetGraph() const& { return graph; }
 
   private:
     SegmentGraph graph;
     vector<Sentence> sentences;
-  }
+    EmbeddingManager embedding;
+  };
 }
 
 #endif

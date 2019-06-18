@@ -16,17 +16,18 @@ int main()
   }
 
   // Word vector instantiation
-  WordVectorManager wvm;
+  EmbeddingManager em;
   for(const auto& _s : s)
   {
-    wvm.AddSentenceWords(_s);
+    em.AddSentenceWords(_s);
   }
-  wvm.GetWordEmbeddings();
+  em.GetWordEmbeddings();
 
-  GraphManager gm(sg(3));
+  GraphManager gm(SegmentGraph(3));
   gm.SetVertices(s)
   gm.SetEdges(wvm);
-  auto graph = sg.GetGraph()
+  auto graph = gm.GetGraph()
+
   for(const auto& v: graph.GetMaximumClique())
   {
     std::cout << "{";

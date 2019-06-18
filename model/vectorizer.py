@@ -1,7 +1,5 @@
 import os, sys
 import gensim
-
-# import argparse
 from gensim.models.word2vec import Word2Vec
 
 model_path = os.path.join(
