@@ -9,24 +9,17 @@ using namespace GraphSeg;
 int main()
 {
   // Set texts
-  vector<Sentence> s = {
-   Sentence("This is a pen"),
-   Sentence("I want to play soccer"),
-   Sentence("soccer is very fun")
-  }
+  vector<Sentence> s;
+  s.emplace_back(Sentence("This is a pen"));
+  s.emplace_back(Sentence("I want to play soccer"));
+  s.emplace_back(Sentence("soccer is very fun"));
 
-  // Word vector instantiation
   EmbeddingManager em;
-  for(const auto& _s : s)
-  {
-    em.AddSentenceWords(_s);
-  }
-  em.GetWordEmbeddings();
-
   GraphManager gm(SegmentGraph(3));
-  gm.SetVertices(s)
-  gm.SetEdges(wvm);
-  auto graph = gm.GetGraph()
+
+  gm.SetVertices(s);
+  gm.SetEdges(em);
+  auto graph = gm.GetGraph();
 
   for(const auto& v: graph.GetMaximumClique())
   {

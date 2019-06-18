@@ -9,7 +9,6 @@
 #include <string>
 #include <memory>
 #include <iterator>
-#include <algorithm>
 #include <unordered_map>
 
 namespace GraphSeg

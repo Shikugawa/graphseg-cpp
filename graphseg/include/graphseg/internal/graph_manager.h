@@ -24,11 +24,11 @@ namespace GraphSeg
       for (const auto& s : ss)
       {
         graph.SetSentence(s);
+        sentences.emplace_back(s);
       }
-      std::copy(ss.begin(), ss.end(), sentences);
     }
 
-    void SetEdges(const EmbeddingManager& em)
+    void SetEdges(EmbeddingManager& em)
     {
       const auto graph_size = graph.GetGraphSize();
       vector<vector<uint8_t>> memo(graph_size);
@@ -42,7 +42,7 @@ namespace GraphSeg
         for (size_t j = 0; j < graph_size; ++j)
         {
           if (memo[i][j] == 1 && memo[j][i] == 1) continue;
-          graph.SetEdge(i, j, embedding.GetSimilarity(sentences[i], sentences[j]));
+          graph.SetEdge(i, j, em.GetSimilarity(sentences[i], sentences[j]));
           memo[i][j] = 1;
           memo[j][i] = 1;
         }
@@ -54,7 +54,6 @@ namespace GraphSeg
   private:
     SegmentGraph graph;
     vector<Sentence> sentences;
-    EmbeddingManager embedding;
   };
 }
 

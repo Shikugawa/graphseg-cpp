@@ -11,20 +11,22 @@ namespace GraphSeg
   {
     using iterator = vector<string>::iterator;
     using const_iterator = vector<string>::const_iterator;
-  
+
+    const char delim = ' ';
+
   public:
     Sentence(string&& s) : sentence(std::move(s))
     {
       string item;
-      for (size_t i = 0; i < sentence.size(); ++i)
+      for (auto itr = sentence.begin(); itr != sentence.end(); ++itr)
       {
-        if (sentence[i] == " ") // deliminator is space
+        if (*itr == delim)
         {
           terms.emplace_back(item);
           item.clear();
           continue;
         }
-        item += sentence[i];
+        item += *itr;
       }
     }
 

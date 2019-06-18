@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <tuple>
+#include <type_traits>
 #include <memory>
 #include <array>
 
@@ -100,7 +101,8 @@ namespace GraphSeg {
     /// <summary>
     /// TODO: get word vector
     /// </summary>
-    const WordEmbedding& GetVector(const string& term) { return get<0>(words[term]); }
+    inline WordEmbedding& GetVector(const string& term)
+    { return get<0>(words[term]); }
 
     /// <summary>
     /// TODO: get word frequency from all sentences
@@ -121,8 +123,8 @@ namespace GraphSeg {
       {
         for(const auto& target_term: sg2.GetTerms())
         {
-          auto v1 = this->GetVector(term);
-          auto v2 = this->GetVector(term);
+          auto& v1 = this->GetVector(term);
+          auto& v2 = this->GetVector(term);
           assert(v1.size() == v2.size());
           auto sim = CosineSimilarity(v1.cbegin(), v1.cend(), v2.cbegin(), v2.cend());
           result += sim*min({InformationContent(term), InformationContent(target_term)});
@@ -159,7 +161,7 @@ namespace GraphSeg {
 
     string GetTermStream() const
     {
-      string s = "";
+      string s;
       for(const auto& word: words)
       {
         s += word.first + " ";
