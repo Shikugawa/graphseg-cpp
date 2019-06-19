@@ -125,7 +125,7 @@ namespace GraphSeg {
         for(const auto& target_term: sg2.GetTerms())
         {
           const auto& v1 = this->GetVector(term);
-          const auto& v2 = this->GetVector(term);
+          const auto& v2 = this->GetVector(target_term);
           if (IsStopWord(v1) || IsStopWord(v2)) continue;
           assert(v1.size() == v2.size());
           auto sim = CosineSimilarity(v1.cbegin(), v1.cend(), v2.cbegin(), v2.cend());
@@ -139,7 +139,7 @@ namespace GraphSeg {
     template <class ForwardIterator>
     double CosineSimilarity(ForwardIterator _abegin, ForwardIterator _aend, ForwardIterator _bbegin, ForwardIterator _bend)
     {
-      double q, d, qd;
+      double q = 0, d = 0, qd = 0;
       auto a = _abegin;
       auto b = _bbegin;
       while(a != _aend && b != _bend)

@@ -12,9 +12,8 @@ int main()
   // Set texts
   vector<Sentence> s;
   s.emplace_back(Sentence("a very large"));
-  s.emplace_back(Sentence("a very large"));
   s.emplace_back(Sentence("I play"));
-
+  s.emplace_back(Sentence("I love soccer very much"));
   EmbeddingManager em;
   for(auto& _s: s)
   {
@@ -36,7 +35,7 @@ int main()
   // sg.SetEdge(1, 2, -15.2);
   // sg.SetEdge(2, 0, -15.8);
   // sg.SetMaximumClique();
-  // std::cout << sg << std::endl;
+  std::cout << sg << std::endl;
   for(const auto& v: sg.GetMaximumClique())
   {
     std::cout << "{";
