@@ -25,10 +25,19 @@ int main()
 
   gm.SetVertices(s);
   gm.SetEdges(em);
-  auto graph = gm.GetGraph();
-  std::cout << graph << std::endl;
-  graph.SetMaximumClique();
-  for(const auto& v: graph.GetMaximumClique())
+  auto sg = gm.GetGraph();
+  sg.SetMaximumClique();
+  
+  // SegmentGraph sg(3);
+  // sg.SetSentence(s[0]);
+  // sg.SetSentence(s[1]);
+  // sg.SetSentence(s[2]);
+  // sg.SetEdge(0, 1, -30.2);
+  // sg.SetEdge(1, 2, -15.2);
+  // sg.SetEdge(2, 0, -15.8);
+  // sg.SetMaximumClique();
+  // std::cout << sg << std::endl;
+  for(const auto& v: sg.GetMaximumClique())
   {
     std::cout << "{";
     for(const auto& r: v)

@@ -86,7 +86,7 @@ namespace GraphSeg
     void SetMaximumClique()
     {
       vector<Vertex> tmp(node_idx);
-      int i = 0;
+      int i = -1;
       std::generate(tmp.begin(), tmp.end(), [&i](){ ++i; return i; });
       BronKerbosch(set<Vertex>(), set<Vertex>(tmp.begin(), tmp.end()), set<Vertex>());
     }
@@ -108,6 +108,8 @@ namespace GraphSeg
     {
       if (candidates.empty() && excluded.empty())
       { 
+        for(auto c: clique) std::cout << c << " ";
+        std::cout << std::endl;
         max_cliques.insert(clique);
         return;
       }
@@ -121,7 +123,6 @@ namespace GraphSeg
         auto clique_t = clique + set<Vertex>({v});
         auto candidates_t = candidates & GetNeighbors(v);
         auto excluded_t = excluded & GetNeighbors(v);
-
         assert(clique_t.size() > clique.size());
         assert(candidates_t.size() <= candidates.size());
         assert(excluded_t.size() <= excluded.size());
