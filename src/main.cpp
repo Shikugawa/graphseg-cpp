@@ -10,18 +10,20 @@ using namespace GraphSeg;
 int main()
 {
   // Set texts
+  double thereshold = 3.0;
   vector<Sentence> s;
-  s.emplace_back(Sentence("a very large"));
+  s.emplace_back(Sentence("a very large linguistic natural language"));
   s.emplace_back(Sentence("I play"));
-  s.emplace_back(Sentence("I love soccer very much"));
+  s.emplace_back(Sentence("a very large linguistic natural language"));
   EmbeddingManager em;
+
   for(auto& _s: s)
   {
     em.AddSentenceWords(_s);
   }
   em.GetWordEmbeddings();
   GraphManager gm(SegmentGraph(3));
-
+  gm.SetThreshold(thereshold);
   gm.SetVertices(s);
   gm.SetEdges(em);
   auto sg = gm.GetGraph();

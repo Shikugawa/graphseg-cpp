@@ -13,7 +13,8 @@
 
 #include <iostream>
 
-namespace GraphSeg {
+namespace GraphSeg
+{
   using namespace rapidjson;
   using std::unordered_map, std::shared_ptr, std::array, std::min, std::sqrt, std::log, 
         std::pow, std::tuple, std::get, std::make_tuple;
@@ -112,10 +113,10 @@ namespace GraphSeg {
     {
       return 0.1;
     }
-
-
+    
     /// <summary>
     /// get sentence similarity with cosine similarity
+    /// 負数で小さいほど類似度が高いので符号を入れ替える
     /// </summary>
     double GetSimilarity(const Sentence& sg1, const Sentence& sg2)
     {
@@ -132,7 +133,7 @@ namespace GraphSeg {
           result += sim*min({InformationContent(term), InformationContent(target_term)});
         }
       }
-      return result;
+      return -result;
     }
 
   private:
