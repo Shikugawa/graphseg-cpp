@@ -2,13 +2,12 @@
 #define GRAPHSEG_CPP_GRAPHSEG_INTERNAL_EMBEDDING_MANAGER_H
 
 #include "sentence.h"
+#include "util.h"
+#include "frequency.h"
 #include <rapidjson/document.h>
 #include <unordered_map>
-#include <cstdlib>
-#include <cstdio>
 #include <tuple>
 #include <type_traits>
-#include <memory>
 #include <array>
 
 #include <iostream>
@@ -16,33 +15,13 @@
 namespace GraphSeg
 {
   using namespace rapidjson;
-  using std::unordered_map, std::shared_ptr, std::array, std::min, std::sqrt, std::log, 
+  using std::unordered_map, std::array, std::min, std::sqrt, std::log, 
         std::pow, std::tuple, std::get, std::make_tuple;
 
-  static constexpr auto BUFFER_SIZE = 256;
   static constexpr auto DIM = 300;
 
   const string home = getenv("HOME");
-  const string COMMAND = home + "/.pyenv/shims/python" + " " + home + "/graphseg-cpp/model/vectorizer.py";
-  
-  string exec(const char* cmd, int& code)
-  {
-    string stdout;
-    shared_ptr<FILE> pipe(popen(cmd, "r"), [&](FILE* p) {code = pclose(p);});
-    if(!pipe)
-    {
-      return stdout;
-    }
-    array<char, BUFFER_SIZE> buf;
-    while(!feof(pipe.get()))
-    {
-      if(fgets(buf.data(), buf.size(), pipe.get()) != nullptr)
-      {
-        stdout += buf.data();
-      }
-    }
-    return stdout;
-  }
+  const string COMMAND = home + "/.pyenv/shims/python" + " " + home + "/graphseg-cpp/script/vectorizer.py";
 
   class EmbeddingManager
   {
@@ -105,14 +84,6 @@ namespace GraphSeg
     /// </summary>
     inline WordEmbedding& GetVector(const string& term)
     { return get<0>(words[term]); }
-
-    /// <summary>
-    /// TODO: get word frequency from all sentences
-    /// </summary>
-    double GetFrequency(const string& term)
-    {
-      return 0.1;
-    }
     
     /// <summary>
     /// get sentence similarity with cosine similarity
@@ -154,10 +125,11 @@ namespace GraphSeg
       return qd/(sqrt(q)*sqrt(d));
     }
 
-    // TODO: frequency
     double InformationContent(const string& term)
     {
-      return -log(GetFrequency(term) + 1 / 1000000 + 4.0);
+      const auto numerator = frequency.GetSize() + frequency.GetSumFreq();
+      const auto denominator = frequency.GetFrequency(term) + 1;
+      return denominator / numerator;
     }
 
     string GetTermStream() const
@@ -204,6 +176,7 @@ namespace GraphSeg
       return true;
     }
 
+    Frequency frequency;
     unsigned int termLength;
     unordered_map<string, tuple<WordEmbedding, unsigned int>> words;
   };

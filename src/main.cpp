@@ -37,6 +37,7 @@ int main()
   // sg.SetEdge(1, 2, -15.2);
   // sg.SetEdge(2, 0, -15.8);
   // sg.SetMaximumClique();
+  
   std::cout << sg << std::endl;
   for(const auto& v: sg.GetMaximumClique())
   {
