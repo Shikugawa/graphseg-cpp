@@ -9,6 +9,7 @@
 #include <tuple>
 #include <type_traits>
 #include <array>
+#include <memory>
 
 #include <iostream>
 
@@ -16,12 +17,10 @@ namespace GraphSeg
 {
   using namespace rapidjson;
   using std::unordered_map, std::array, std::min, std::sqrt, std::log, 
-        std::pow, std::tuple, std::get, std::make_tuple;
+        std::pow, std::tuple, std::get, std::make_tuple, std::unique_ptr;
 
   static constexpr auto DIM = 300;
-
-  const string home = getenv("HOME");
-  const string COMMAND = home + "/.pyenv/shims/python" + " " + home + "/graphseg-cpp/script/vectorizer.py";
+  const string COMMAND_VECTORIZER = home + "/.pyenv/shims/python" + " " + home + "/graphseg-cpp/script/vectorizer.py";
 
   class EmbeddingManager
   {
@@ -33,8 +32,7 @@ namespace GraphSeg
     EmbeddingManager(const EmbeddingManager&) = delete;
 
     // disable copy
-    EmbeddingManager& operator=(const EmbeddingManager&)
-    {}
+    EmbeddingManager& operator=(const EmbeddingManager&) = delete;
 
     /// <summary>
     /// append word to word list from one sentence
@@ -63,10 +61,11 @@ namespace GraphSeg
     {
       int code;
       const string term_stream = GetTermStream();
-      const string cmd = "echo " +  term_stream + " | " + COMMAND;
+      const string cmd = "echo " +  term_stream + " | " + COMMAND_VECTORIZER;
       auto result = exec(cmd.c_str(), code);
       Document doc;
       const auto parse_result = doc.Parse(result.c_str()).HasParseError();
+      assert(parse_result == false);
       for (auto itr = doc.MemberBegin(); itr != doc.MemberEnd(); ++itr)
       {
         const auto term = itr->name.GetString();
@@ -77,6 +76,8 @@ namespace GraphSeg
           get<0>(words[term])[static_cast<size_t>(i)] = get_vector[i].GetDouble();
         }
       }
+
+      frequency = std::make_unique<Frequency>(term_stream);
     }
 
     /// <summary>
@@ -127,8 +128,8 @@ namespace GraphSeg
 
     double InformationContent(const string& term)
     {
-      const auto numerator = frequency.GetSize() + frequency.GetSumFreq();
-      const auto denominator = frequency.GetFrequency(term) + 1;
+      const auto numerator = frequency->GetSize() + frequency->GetSumFreq();
+      const auto denominator = frequency->GetFrequency(term) + 1;
       return denominator / numerator;
     }
 
@@ -176,7 +177,7 @@ namespace GraphSeg
       return true;
     }
 
-    Frequency frequency;
+    unique_ptr<Frequency> frequency;
     unsigned int termLength;
     unordered_map<string, tuple<WordEmbedding, unsigned int>> words;
   };

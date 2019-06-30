@@ -18,7 +18,7 @@ class MyEncoder(json.JSONEncoder):
 
 
 model_path = os.path.join(
-    os.environ["HOME"], "graphseg-cpp/model/GoogleNews-vectors-negative300.bin"
+    os.environ["HOME"], "graphseg-cpp/script/GoogleNews-vectors-negative300.bin"
 )
 
 model = gensim.models.KeyedVectors.load_word2vec_format(

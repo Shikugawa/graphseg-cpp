@@ -4,7 +4,7 @@ from nltk.corpus import gutenberg
 
 emma = gutenberg.words("austen-emma.txt")
 dist = FreqDist(emma)
-print(dist["love"])
+
 if __name__ == "__main__":
     line = input()
     out = {"total_count": len(dist)}  # total_countという単語は間違いなく存在しないので可

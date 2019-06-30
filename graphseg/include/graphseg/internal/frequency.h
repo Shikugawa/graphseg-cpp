@@ -12,7 +12,7 @@ namespace GraphSeg
   using namespace rapidjson;
 
   const string home = getenv("HOME");
-  const string COMMAND = home + "/.pyenv/shims/python" + " " + home + "/graphseg-cpp/script/frequency.py";
+  const string COMMAND_FREQUENCY = home + "/.pyenv/shims/python" + " " + home + "/graphseg-cpp/script/frequency.py";
 
   class Frequency
   {
@@ -23,10 +23,11 @@ namespace GraphSeg
     Frequency(const string& stream)
     {
       int code;
-      const string cmd = "echo " + stream + " | " + COMMAND;
+      const string cmd = "echo " + stream + " | " + COMMAND_FREQUENCY;
       auto result = exec(cmd.c_str(), code);
       Document doc;
       const auto parse_result = doc.Parse(result.c_str()).HasParseError();
+      assert(parse_result == false);
       for (auto itr = doc.MemberBegin(); itr != doc.MemberEnd(); ++itr)
       {
         const auto term = itr->name.GetString();
@@ -41,6 +42,10 @@ namespace GraphSeg
         frequency[term] = freq;
       }
     }
+
+    Frequency(const Frequency&) = delete;
+
+    Frequency& operator=(const Frequency&) = delete;
 
     /// <summary>
     /// 単語の頻度を得る
@@ -64,7 +69,7 @@ namespace GraphSeg
     unsigned int total_count;
     unsigned int sum_frequency;
     unordered_map<string, double> frequency;
-  }
+  };
 }
 
 #endif
