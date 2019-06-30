@@ -10,7 +10,7 @@ using namespace GraphSeg;
 int main()
 {
   // Set texts
-  double thereshold = 3.0;
+  double thereshold = 0.05;
   vector<Sentence> s;
   s.emplace_back(Sentence("a very large linguistic natural language"));
   s.emplace_back(Sentence("I play"));

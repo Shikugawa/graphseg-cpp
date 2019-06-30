@@ -105,7 +105,7 @@ namespace GraphSeg
           result += sim*min({InformationContent(term), InformationContent(target_term)});
         }
       }
-      return -result;
+      return result;
     }
 
   private:

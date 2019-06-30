@@ -5,7 +5,8 @@
 #include <string>
 #include <unordered_map>
 #include <rapidjson/document.h>
-
+#include <iostream>
+#include <cstring>
 namespace GraphSeg
 {
   using std::unordered_map, std::string;
@@ -32,7 +33,7 @@ namespace GraphSeg
       {
         const auto term = itr->name.GetString();
         assert(doc.HasMember(term));
-        if (term == "total_count")
+        if (!std::strcmp("total_count", term))
         {
           total_count = doc[term].GetInt();
           continue;
@@ -67,7 +68,7 @@ namespace GraphSeg
 
   private:
     unsigned int total_count;
-    unsigned int sum_frequency;
+    double sum_frequency;
     unordered_map<string, double> frequency;
   };
 }
