@@ -4,6 +4,7 @@
   #include <iostream>
 #endif
 #include "sentence.h"
+#include "nameof.hpp"
 #include <set>
 #include <vector>
 #include <string>
@@ -15,10 +16,37 @@
 
 namespace GraphSeg
 {
-  using std::vector, std::make_pair, std::set, std::string, std::set_intersection, std::set_union, std::inserter, std::basic_ostream;
+  using std::unordered_map, std::vector, std::make_pair, std::set, std::string, std::set_intersection, std::set_union, std::inserter, std::basic_ostream;
   using Vertex = unsigned int;
   using VertexSet = set<Vertex>;
   using Edge = std::pair<Vertex, double>;
+
+  enum class GraphType
+  {
+    DIRECTED_GRAPH,
+    UNDIRECTED_GRAPH
+  };
+
+  struct FormattedGraph
+  {
+    struct FormattedNode
+    {
+      struct FormattedTargetNode 
+      {
+        string id;
+        double edge_weight;
+
+        FormattedTargetNode(string _id, double _weight) : id(_id), edge_weight(_weight)
+        {}
+      };
+
+      double score;
+      vector<FormattedTargetNode> targets;
+    };
+
+    GraphType graph_type;
+    unordered_map<string, FormattedNode> value;
+  };
 
   template <typename T>
   set<T> operator&(const set<T>& v1, const set<T>& v2)
@@ -63,13 +91,18 @@ namespace GraphSeg
       graph.emplace_back(vector<Edge>());
     }
 
+    void SetArc(int src, int dst, double score)
+    {
+      graph[src].emplace_back(make_pair(dst, score));
+    }
+
     /// <summary>
     /// set segment graph edge
     /// </summary>
     void SetEdge(int src, int dst, double score)
     {
-      graph[src].emplace_back(make_pair(dst, score));
-      graph[dst].emplace_back(make_pair(src, score));
+      SetArc(src, dst, score);
+      SetArc(dst, src, score);
     }
 
     /// <summary>
@@ -149,6 +182,54 @@ namespace GraphSeg
     Vertex node_idx = 0;
     Vertex max_sentence_size;
   };
+
+  FormattedGraph format(const SegmentGraph& sg)
+  {
+    using FormattedNode = FormattedGraph::FormattedNode;
+    using FormattedTargetNode = FormattedNode::FormattedTargetNode;
+
+    FormattedGraph fg;
+    fg.graph_type = GraphType::UNDIRECTED_GRAPH;
+    for (size_t i = 0; i < sg.GetGraphSize(); ++i)
+    {
+      const auto& adjacent_nodes = sg[i];
+      FormattedNode fn;
+      fn.score = 0; // この文脈ではノードの重みは必要ない
+      for (const auto& adjacent_node: adjacent_nodes)
+      {
+        fn.targets.emplace_back(FormattedTargetNode(std::to_string(adjacent_node.first), adjacent_node.second));
+      }
+      fg.value[std::to_string(i)] = fn;
+    }
+    return fg;
+  }
+
+  template <typename CharT, typename Traits>
+  basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, const FormattedGraph& fg)
+  {
+    os << "{\n";
+    os << "  \"graph_type\": " << NAMEOF_ENUM(fg.graph_type) << ",\n";
+    os << "  \"value\": [\n";
+    for (const auto& node: fg.value)
+    {
+      const auto& formatted_node = node.second;
+      os << "    {\n";
+      os << "      \"score\": " << formatted_node.score << ",\n";
+      os << "      \"targets: [\"\n";
+      for (const auto& target: formatted_node.targets)
+      {
+        os << "         {\n";
+        os << "           \"id\"" << target.id << "\n";
+        os << "           \"weight\"" << target.edge_weight << "\n"; 
+        os << "         },\n";
+      }
+      os << "      ]\n";
+      os << "    },\n";
+    }
+    os << "  ]\n";
+    os << "}\n";
+    return os;
+  }
 
   template <typename CharT, typename Traits>
   basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, const SegmentGraph& sg)
