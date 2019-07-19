@@ -72,7 +72,7 @@ namespace GraphSeg
     }
 
     /// <summary>
-    /// set sentence graph (lvalue)
+    /// セグメントグラフにノードを与える
     /// </summary>
     void SetSentence(const Sentence& s)
     {
@@ -81,9 +81,6 @@ namespace GraphSeg
       graph.emplace_back(vector<Edge>());
     }
 
-    /// <summary>
-    /// set sentence graph (rvalue)
-    /// </summary>
     void SetSentence(Sentence&& s)
     {
       ++node_idx;
@@ -97,7 +94,7 @@ namespace GraphSeg
     }
 
     /// <summary>
-    /// set segment graph edge
+    /// セグメントグラフにエッジを張る
     /// </summary>
     void SetEdge(int src, int dst, double score)
     {
@@ -106,15 +103,20 @@ namespace GraphSeg
     }
 
     /// <summary>
-    /// get graph size
+    /// グラフの大きさを取得する
     /// </summary>
-    Vertex GetGraphSize() const noexcept
+    inline const Vertex& GetGraphSize() const&
     {
       return node_idx;
     }
 
+    inline Vertex GetGraphSize() &&
+    {
+      return std::move(node_idx);
+    }
+
     /// <summary>
-    /// calclate maximum clique
+    /// 最大クリークを計算する
     /// </summary>
     void SetMaximumClique()
     {
@@ -125,16 +127,33 @@ namespace GraphSeg
     }
 
     /// <summary>
-    /// get maximum clique
+    /// 計算した最大クリークを取得する
     /// </summary>
-    set<VertexSet>& GetMaximumClique() &
+    inline const set<VertexSet>& GetMaximumClique() const&
     {
       return max_cliques;
     }
 
-    const Sentence& GetSentence(size_t idx) const&{ return sentence_idx[idx]; }
-  
-    const vector<Edge>& operator[](size_t idx) const& { return graph[idx]; }
+    inline set<VertexSet> GetMaximumClique() &&
+    {
+      return std::move(max_cliques);
+    }
+
+    /// <summary>
+    /// 文章を取得する
+    /// </summary>
+    inline const Sentence& GetSentence(size_t idx) const&
+    { 
+      return sentence_idx[idx]; 
+    }
+
+    /// <summary>
+    /// 指定したノードに隣接しているノードの番号と重みを取得する
+    /// </summary>
+    inline const vector<Edge>& operator[](size_t idx) const& 
+    { 
+      return graph[idx]; 
+    }
 
   private:
     void BronKerbosch(set<Vertex> clique, set<Vertex> candidates, set<Vertex> excluded)

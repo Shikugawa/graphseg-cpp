@@ -18,6 +18,82 @@ namespace GraphSeg
   public:
     Sentence(string&& s) : sentence(std::move(s))
     {
+      CreateTerm();
+    }
+
+    Sentence(const string& s) : sentence(s)
+    {
+      CreateTerm();
+    }
+
+    inline iterator begin() noexcept 
+    { 
+      return terms.begin(); 
+    }
+    
+    inline const_iterator cbegin() const noexcept 
+    { 
+      return terms.cbegin(); 
+    }
+    
+    inline iterator end() noexcept 
+    { 
+      return terms.end(); 
+    }
+    
+    inline const_iterator cend() const noexcept 
+    { 
+      return terms.cend(); 
+    }
+
+    /// <summary>
+    /// 文章中の全タームを取得する
+    /// </summary>
+    const vector<string>& GetTerms() const& 
+    { 
+      return terms; 
+    }
+
+    vector<string> GetTerms() &&
+    {
+      return std::move(terms);
+    }
+
+    /// <summary>
+    /// 文章の全ターム数を取得する
+    /// </summary>
+    size_t GetSize()
+    {
+      return terms.size(); 
+    }
+
+    /// <summary>
+    /// 文章の内容を取得する
+    /// </summary>
+    const string& GetText() const& 
+    { 
+      return sentence; 
+    }
+
+    /// <summary>
+    /// 文章の内容を取得する
+    /// </summary>
+    string GetText() &&
+    { 
+      return std::move(sentence); 
+    }
+
+    /// <summary>
+    /// タームを取得する
+    /// </summary>
+    const string& operator[](size_t idx)
+    { 
+      return terms[idx]; 
+    }
+
+  private:
+    void CreateTerm()
+    {
       string item;
       for (auto itr = sentence.begin(); itr != sentence.end(); ++itr)
       {
@@ -32,35 +108,6 @@ namespace GraphSeg
       terms.emplace_back(item);
     }
 
-    /// <summary>
-    /// apply Iterable
-    /// </summary>
-    inline iterator begin() noexcept { return terms.begin(); }
-    
-    inline const_iterator cbegin() const noexcept { return terms.cbegin(); }
-    
-    inline iterator end() noexcept { return terms.end(); }
-    
-    inline const_iterator cend() const noexcept { return terms.cend(); }
-
-    /// <summary>
-    /// get all terms in a sentence
-    /// </summary>
-    const vector<string>& GetTerms() const& { return terms; }
-
-    /// <summary>
-    /// get sentence length
-    /// </summary>
-    size_t GetSize() const& { return terms.size(); }
-
-    /// <summary>
-    /// get term from index
-    /// </summary>
-    const string& operator[](size_t idx) const& { return terms[idx]; }
-
-    const string& GetText() const& { return sentence; }
-  
-  private:
     string sentence;
     vector<string> terms;
   };

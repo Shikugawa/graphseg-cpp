@@ -24,15 +24,27 @@ namespace GraphSeg
     /// エッジ重みの閾値を設定（右辺値&左辺値）
     /// </summary>
     inline void SetThreshold(const double& thd) noexcept 
-    { thereshold = thd; }
+    { 
+      thereshold = thd; 
+    }
 
     inline void SetThreshold(double&& thd) noexcept 
-    { thereshold = std::move(thd); }
+    { 
+      thereshold = std::move(thd); 
+    }
 
     /// <summary>
     /// グラフを取得する
     /// </summary>
-    const SegmentGraph& GetGraph() const& { return graph; }
+    const SegmentGraph& GetGraph() const& 
+    { 
+      return graph; 
+    }
+
+    SegmentGraph&& GetGraph() &&
+    {
+      return std::move(graph);
+    }
 
     /// <summary>
     /// 与えられた文章をグラフの頂点に設定する
@@ -40,6 +52,15 @@ namespace GraphSeg
     void SetVertices(const vector<Sentence>& ss)
     {
       for (const auto& s : ss)
+      {
+        graph.SetSentence(s);
+        sentences.emplace_back(s);
+      }
+    }
+
+    void SetVertices(vector<Sentence>&& ss)
+    {
+      for (auto&& s : std::move(ss))
       {
         graph.SetSentence(s);
         sentences.emplace_back(s);

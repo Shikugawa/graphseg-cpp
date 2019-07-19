@@ -31,12 +31,10 @@ namespace GraphSeg
     
     EmbeddingManager(const EmbeddingManager&) = delete;
 
-    // disable copy
     EmbeddingManager& operator=(const EmbeddingManager&) = delete;
 
     /// <summary>
-    /// append word to word list from one sentence
-    /// TODO: sentence should be const
+    /// センテンスの単語から埋め込みを得る際の前処理
     /// </summary>
     void AddSentenceWords(Sentence& s)
     {
@@ -54,8 +52,24 @@ namespace GraphSeg
       }
     }
 
+    void AddSentenceWords(Sentence&& s)
+    {
+      for (auto&& term: std::move(s))
+      {
+        if (!exists(term))
+        {
+          ++termLength;
+          InitWordEmbedding(term);
+        }
+        else
+        {
+          ++get<1>(words[term]);
+        }
+      }
+    }
+
     /// <summary>
-    /// get all word embedding from trained word data (Google News Dataset)
+    /// 全ての単語埋め込みを得る
     /// </summary>
     void GetWordEmbeddings()
     {
@@ -81,13 +95,15 @@ namespace GraphSeg
     }
 
     /// <summary>
-    /// TODO: get word vector
+    /// 単語ベクトルの取得
     /// </summary>
     inline WordEmbedding& GetVector(const string& term)
-    { return get<0>(words[term]); }
+    { 
+      return get<0>(words[term]); 
+    }
     
     /// <summary>
-    /// get sentence similarity with cosine similarity
+    /// コサイン類似度に基づくセンテンス間の類似度を得る
     /// 負数で小さいほど類似度が高いので符号を入れ替える
     /// </summary>
     double GetSimilarity(const Sentence& sg1, const Sentence& sg2)
