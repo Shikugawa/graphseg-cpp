@@ -16,7 +16,8 @@
 
 namespace GraphSeg
 {
-  using std::unordered_map, std::vector, std::make_pair, std::set, std::string, std::set_intersection, std::set_union, std::inserter, std::basic_ostream;
+  using std::unordered_map, std::vector, std::make_pair, std::set, std::string, std::set_intersection, 
+        std::set_union, std::set_difference, std::inserter, std::basic_ostream;
   using Vertex = unsigned int;
   using VertexSet = set<Vertex>;
   using Edge = std::pair<Vertex, double>;
@@ -64,9 +65,19 @@ namespace GraphSeg
     return result;
   }
 
+  template <typename T>
+  set<T> operator-(const set<T>& v1, const set<T>& v2)
+  {
+    set<T> result;
+    set_difference(v1.begin(), v1.end(), v2.begin(), v2.end(), inserter(result, result.end()));
+    return result;
+  }
+
   class SegmentGraph
   {
   public:
+    size_t minimum_segment_size = 2;
+
     SegmentGraph(Vertex _max_sentence_size) : max_sentence_size(_max_sentence_size)
     {
     }
@@ -131,12 +142,12 @@ namespace GraphSeg
     /// </summary>
     inline const set<VertexSet>& GetMaximumClique() const&
     {
-      return max_cliques;
+      return max_cliques_set;
     }
 
     inline set<VertexSet> GetMaximumClique() &&
     {
-      return std::move(max_cliques);
+      return std::move(max_cliques_set);
     }
 
     /// <summary>
@@ -155,12 +166,59 @@ namespace GraphSeg
       return graph[idx]; 
     }
 
+    /// <summary>
+    /// 最大クリークからセグメントを構築する
+    /// </summary>
+    set<VertexSet> ConstructSegment()
+    {
+      if (segments.size == 0) 
+        ConstructInitSegment();
+
+      while (!flag) {
+        vector<vector<Vertex>> next_segment;
+        vector<int> segment_memo(segment,size(), 0); // next_segmentに加えられたものは1とする
+
+        for (size_t i = 0; i < segment.size(); ++i)
+        {
+          if (segment_memo[i] == 1)
+            continue;
+
+          if (IsMergable(segment[i], segment[i+1]))
+          {
+            next_segment.emplace_back(std::copy(segment[i+1].begin(), segment[i+1].end(), std::back_inserter(segment[i])));
+            segment_memo[i] = 1;
+            segment_memo[i+1] = 1;
+            continue;
+          }
+
+          segment_memo.emplace_back(segment[i]);
+          segment_memo[i] = 1;
+        }
+
+        segment.clear();
+        segment = next_segment;
+
+        
+        if (IsValidSegment()) break;
+      }
+    }
+
+    set<VertexSet> GetAdjacentNodes(const size_t idx)
+    {
+      set<VertexSet> adjacents;
+      for (const auto& [adjacent_node_id, edge_weight]: graph[idx])
+      {
+        adjacents.emplace_back(adjacent_node_id);
+      }
+      return adjacent_node_id;
+    }
+    
   private:
     void BronKerbosch(set<Vertex> clique, set<Vertex> candidates, set<Vertex> excluded)
     {
       if (candidates.empty() && excluded.empty())
       { 
-        max_cliques.insert(clique);
+        max_cliques_set.insert(clique);
         return;
       }
 
@@ -183,6 +241,49 @@ namespace GraphSeg
         candidates_tmp.insert(v);  
         excluded.insert(v);
       }
+
+      max_cliques.resize(max_sentence_size);
+      for (const auto& max_clique_: max_cliques_set)
+      {
+        for (const auto& clique_vertex: max_clique_)
+        {
+          const auto rem = max_clique_ - set(clique_vertex);
+          max_cliques[clique_vertex].emplace_back(vector<Vertex>(rem.begin(), rem.end()));
+        }
+      }
+    }
+
+    /// <summary>
+    /// ファーストセグメント中のあるノードを含む最大クリークが、セカンドセグメントに含まれている場合はマージしても良いとする。
+    /// 最大クリークに含まれているということは、そのノードで示されているトピックがセカンドセグメントで言及されている可能性があるという事である。
+    /// </summary>
+    bool IsMergable(const vector<Vertex>& sg1, const vector<Vertex>& sg2)
+    {
+      for (const auto& s: sg1)
+      {
+        for (const auto& max_clique_nodes: max_cliques[s])
+        { 
+          vector<Vertex> tmp;
+          set_intersection(max_clique_nodes.begin(), max_clique_nodes.end(), sg2.begin(), sg2.end(), inserter(tmp, tmp.end()));
+          if (tmp.size() != 0) 
+          {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    bool IsValidSegment()
+    {
+        int mem = 1;
+        for (const auto& seg: segment)
+        {
+          if (seg.size() < minimum_segment_size)
+            mem *= 0;
+        }
+        if (mem == 0) return false;
+        return true;
     }
 
     set<Vertex> GetNeighbors(Vertex idx)
@@ -195,9 +296,37 @@ namespace GraphSeg
       return tmp;
     }
 
+    void ConstructInitSegment()
+    {
+      for (const auto& clique: max_cliques_set)
+      {
+        vector<int> check(graph_size, 0); // TODO: ビットで管理したい
+        for (const auto& seg_base: clique)
+        {
+          VertexSet segment;
+          
+          if (check[seg_base] == 1) 
+            continue;
+
+          check[seg_base] = 1;
+          segment.emplace_back(seg_base);
+          const auto candidates = GetNeighbors(seg_base) & clique;
+          for (const auto& c: candidates)
+          {
+            segment.emplace_back(c);
+            check[c] = 1;
+          }
+
+          segments.insert(segment);
+        }
+      }
+    }
+    
     vector<vector<Edge>> graph;
     vector<Sentence> sentence_idx;
-    set<VertexSet> max_cliques;
+    set<VertexSet> max_cliques_set;
+    vector<vector<VertexSet>> max_cliques;
+    vector<vector<Vertex>> segments;
     Vertex node_idx = 0;
     Vertex max_sentence_size;
   };
