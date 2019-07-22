@@ -1,14 +1,17 @@
 #ifndef GRAPHSEG_CPP_GRAPHSEG_SEGMENT_GRAPH_H
 #define GRAPHSEG_CPP_GRAPHSEG_SEGMENT_GRAPH_H 
-#ifdef DEBUG
-  #include <iostream>
-#endif
+
 #include "sentence.h"
+#include "embedding_manager.h"
 #include "nameof.hpp"
+
 #include <set>
+#include <list>
 #include <vector>
 #include <string>
+#include <iterator>
 #include <memory>
+#include <algorithm>
 #include <iostream>
 #include <ostream>
 #include <iterator>
@@ -73,10 +76,35 @@ namespace GraphSeg
     return result;
   }
 
+  /// <summary>
+  /// Listコンテナに対して、任意数のリスト要素と与えた値を置換する
+  /// </summary>
+  template <typename T, typename... It>
+  void replace_list(list<T> l, T value, It&... rest)
+  {
+    auto expand_rest = { ...rest };
+    *expand_rest[0] = value;
+    for (auto itr = expand_rest.begin(); itr != expand_rest.end(); ++itr)
+    {
+      if (itr != expand_rest.begin())
+      {
+        l.erase(itr);
+      }
+    }
+  }
+
   class SegmentGraph
   {
   public:
+    /// <summary>
+    /// 最小セグメントサイズ
+    /// </summary>
     size_t minimum_segment_size = 2;
+
+    /// <summary>
+    /// セグメント構築時にセンテンスの類似度を計算する必要があるため
+    /// </summary>
+    std::unique_ptr<EmbeddingManager> em;
 
     SegmentGraph(Vertex _max_sentence_size) : max_sentence_size(_max_sentence_size)
     {
@@ -151,6 +179,19 @@ namespace GraphSeg
     }
 
     /// <summary>
+    /// セグメントを返す
+    /// </summary>
+    inline list<vector<Vertex>>& GetSegment() const&
+    {
+      return segment;
+    }
+
+    inline list<vector<Vertex>> GetSegment() &&
+    {
+      return std::move(segment);
+    }
+
+    /// <summary>
     /// 文章を取得する
     /// </summary>
     inline const Sentence& GetSentence(size_t idx) const&
@@ -169,38 +210,35 @@ namespace GraphSeg
     /// <summary>
     /// 最大クリークからセグメントを構築する
     /// </summary>
-    set<VertexSet> ConstructSegment()
+    void ConstructSegment()
     {
-      if (segments.size == 0) 
+      if (segments.size() == 0) 
         ConstructInitSegment();
 
-      while (!flag) {
-        vector<vector<Vertex>> next_segment;
-        vector<int> segment_memo(segment,size(), 0); // next_segmentに加えられたものは1とする
+      vector<vector<Vertex>> next_segment;
+      vector<int> segment_memo(segment,size(), 0); // next_segmentに加えられたものは1とする
 
-        for (size_t i = 0; i < segment.size(); ++i)
+      for (size_t i = 0; i < segment.size(); ++i)
+      {
+        if (segment_memo[i] == 1)
+          continue;
+
+        if (IsMergable(segment[i], segment[i+1]))
         {
-          if (segment_memo[i] == 1)
-            continue;
-
-          if (IsMergable(segment[i], segment[i+1]))
-          {
-            next_segment.emplace_back(std::copy(segment[i+1].begin(), segment[i+1].end(), std::back_inserter(segment[i])));
-            segment_memo[i] = 1;
-            segment_memo[i+1] = 1;
-            continue;
-          }
-
-          segment_memo.emplace_back(segment[i]);
+          next_segment.emplace_back(std::copy(segment[i+1].begin(), segment[i+1].end(), std::back_inserter(segment[i])));
           segment_memo[i] = 1;
+          segment_memo[i+1] = 1;
+          continue;
         }
 
-        segment.clear();
-        segment = next_segment;
-
-        
-        if (IsValidSegment()) break;
+        segment_memo.emplace_back(segment[i]);
+        segment_memo[i] = 1;
       }
+
+      segment.clear();
+      segment = next_segment;
+
+      ConstructInvalidSegment();
     }
 
     set<VertexSet> GetAdjacentNodes(const size_t idx)
@@ -274,18 +312,6 @@ namespace GraphSeg
       return false;
     }
 
-    bool IsValidSegment()
-    {
-        int mem = 1;
-        for (const auto& seg: segment)
-        {
-          if (seg.size() < minimum_segment_size)
-            mem *= 0;
-        }
-        if (mem == 0) return false;
-        return true;
-    }
-
     set<Vertex> GetNeighbors(Vertex idx)
     {
       set<Vertex> tmp;
@@ -317,16 +343,91 @@ namespace GraphSeg
             check[c] = 1;
           }
 
-          segments.insert(segment);
+          segments.emplace_back(segment);
         }
       }
     }
     
+    void ConstructInvalidSegment()
+    {
+      const auto segment_relatedness = [&this](auto itr_seg1, auto itr_seg2) -> double
+      {
+        double rel = 1.0;
+        for (const auto& sent1: *itr_seg1)
+        {
+          for (const auto& sent2: *itr_seg2)
+          {
+            rel *= this->em->GetSimilarity(sentence_idx[sent1], sentence_idx[sent2]);
+          }
+        }
+        return rel/itr_seg1->size()*seg2->size();
+      };
+
+      constexpr auto get_merged_segment = [](auto& merged_segment, auto first_itr, auto second_itr) -> vector<Vertex>
+      {
+        std::copy(*first_itr.begin(), *first_itr.end(), merged_segment);
+        merged_segment.insert(merged_segment.end(), *second_itr.begin(), *second_itr.end());
+        return merged_segment;
+      };
+
+      // セグメントセットを順方向に走査し、条件を満たしていないセグメントは前後のいずれかのセグメントとマージ
+      for (auto itr = segment.begin(); itr != segment.end(); ++itr)
+      {
+        if (*itr.size() < minimum_segment_size)
+        {
+          vector<Vertex> merged_segment;
+          if (itr == segment.begin())
+          {
+            get_merged_segment(merged_segment, itr, std::next(itr));
+            replace_list(segment, merged_segment, itr, std::next(itr));
+          }
+          else (itr == segment.end()) // TODO: ここでバグるかも
+          {
+            get_merged_segment(merged_segment, std::prev(itr), itr);
+            replace_list(segment, merged_segment, std::prev(itr), itr);
+          }
+          else
+          {
+            auto before = segment_relatedness(itr, std::prev(itr));
+            auto after = segment_relatedness(it, std::next(itr));
+
+            if (before > after)
+            {
+              get_merged_segment(merged_segment, std::prev(itr), itr);
+              replace_list(segment, merged_segment, std::prev(itr), itr);  
+            }
+            else
+            {
+              get_merged_segment(merged_segment, itr, std::next(itr));
+              replace_list(segment, merged_segment, itr, std::next(itr)); 
+            }
+          }
+        }
+      }
+    }
+
     vector<vector<Edge>> graph;
+
+    /// <summary>
+    /// グラフのノードIDとセンテンスの対応付
+    /// </summary
     vector<Sentence> sentence_idx;
+
+    /// <summary>
+    /// 最大クリーク
+    /// </summary>
     set<VertexSet> max_cliques_set;
+
+    /// <summary>
+    /// 定数時間で計算済み最大クリークを取得出来る
+    /// <summary>
     vector<vector<VertexSet>> max_cliques;
-    vector<vector<Vertex>> segments;
+
+    /// <summary>
+    /// 計算済みセグメント
+    /// <summary>
+    list<vector<Vertex>> segments;
+
     Vertex node_idx = 0;
     Vertex max_sentence_size;
   };
