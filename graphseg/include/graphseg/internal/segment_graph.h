@@ -13,14 +13,15 @@
 #include <memory>
 #include <algorithm>
 #include <iostream>
+#include <tuple>
 #include <ostream>
 #include <iterator>
 #include <unordered_map>
 
 namespace GraphSeg
 {
-  using std::unordered_map, std::vector, std::make_pair, std::set, std::string, std::set_intersection, 
-        std::set_union, std::set_difference, std::inserter, std::basic_ostream;
+  using std::unordered_map, std::vector, std::make_pair, std::set, std::string, std::set_intersection, std::tuple,
+        std::set_union, std::set_difference, std::inserter, std::basic_ostream, std::list;
   using Vertex = unsigned int;
   using VertexSet = set<Vertex>;
   using Edge = std::pair<Vertex, double>;
@@ -77,20 +78,15 @@ namespace GraphSeg
   }
 
   /// <summary>
-  /// Listコンテナに対して、任意数のリスト要素と与えた値を置換する
+  /// Listコンテナに対して、2つののリスト要素と与えた値を置換する
+  /// TODO: 任意数のリスト要素を置換出来るように拡張したい
   /// </summary>
-  template <typename T, typename... It>
-  void replace_list(list<T> l, T value, It&... rest)
+  template <class T, class... It>
+  void replace_list(list<T>& l, T value, It&... rest)
   {
-    auto expand_rest = { ...rest };
-    *expand_rest[0] = value;
-    for (auto itr = expand_rest.begin(); itr != expand_rest.end(); ++itr)
-    {
-      if (itr != expand_rest.begin())
-      {
-        l.erase(itr);
-      }
-    }
+    tuple<It...> expand_rest = { rest... };
+    *std::get<0>(expand_rest) = value;
+    l.erase(std::get<1>(expand_rest));
   }
 
   class SegmentGraph
@@ -181,14 +177,14 @@ namespace GraphSeg
     /// <summary>
     /// セグメントを返す
     /// </summary>
-    inline list<vector<Vertex>>& GetSegment() const&
+    inline const auto& GetSegment() const&
     {
-      return segment;
+      return segments;
     }
 
-    inline list<vector<Vertex>> GetSegment() &&
+    inline auto GetSegment() &&
     {
-      return std::move(segment);
+      return std::move(segments);
     }
 
     /// <summary>
@@ -215,40 +211,47 @@ namespace GraphSeg
       if (segments.size() == 0) 
         ConstructInitSegment();
 
-      vector<vector<Vertex>> next_segment;
-      vector<int> segment_memo(segment,size(), 0); // next_segmentに加えられたものは1とする
+      list<vector<Vertex>> next_segment;
+      vector<int> segment_memo(segments.size(), 0); // TODO：bitsetで管理したい。next_segmentに加えられたものは1とする
 
-      for (size_t i = 0; i < segment.size(); ++i)
+      size_t i = 0;
+      for (auto itr = segments.begin(); itr != segments.end(); ++itr)
       {
         if (segment_memo[i] == 1)
           continue;
 
-        if (IsMergable(segment[i], segment[i+1]))
+        auto current_segment = *itr;
+        auto adjacent_segment = *std::next(itr);
+        
+        if (IsMergable(current_segment, adjacent_segment))
         {
-          next_segment.emplace_back(std::copy(segment[i+1].begin(), segment[i+1].end(), std::back_inserter(segment[i])));
+          vector<Vertex> merged_segment;
+          std::copy(current_segment.begin(), current_segment.end(), merged_segment.begin());
+          current_segment.insert(current_segment.end(), adjacent_segment.begin(), adjacent_segment.end());
+          next_segment.emplace_back(merged_segment);
           segment_memo[i] = 1;
           segment_memo[i+1] = 1;
           continue;
         }
 
-        segment_memo.emplace_back(segment[i]);
         segment_memo[i] = 1;
+        ++i;
       }
 
-      segment.clear();
-      segment = next_segment;
+      segments.clear();
+      segments = next_segment;
 
       ConstructInvalidSegment();
     }
 
-    set<VertexSet> GetAdjacentNodes(const size_t idx)
+    VertexSet GetAdjacentNodes(const size_t idx)
     {
-      set<VertexSet> adjacents;
+      VertexSet adjacents;
       for (const auto& [adjacent_node_id, edge_weight]: graph[idx])
       {
-        adjacents.emplace_back(adjacent_node_id);
+        adjacents.insert(adjacent_node_id);
       }
-      return adjacent_node_id;
+      return adjacents;
     }
     
   private:
@@ -280,13 +283,13 @@ namespace GraphSeg
         excluded.insert(v);
       }
 
-      max_cliques.resize(max_sentence_size);
-      for (const auto& max_clique_: max_cliques_set)
+      // TODO: 一度Setで最大クリークを構築するが、定数オーダーで最大クリークが欲しいのでベクターに変換しているが、メモリ効率が悪いし、変換処理も無駄
+      max_cliques_internal.resize(max_sentence_size);
+      for (auto& max_clique: max_cliques_set)
       {
-        for (const auto& clique_vertex: max_clique_)
+        for (auto& clique_vertex: max_clique)
         {
-          const auto rem = max_clique_ - set(clique_vertex);
-          max_cliques[clique_vertex].emplace_back(vector<Vertex>(rem.begin(), rem.end()));
+          max_cliques_internal[clique_vertex].emplace_back(max_clique);
         }
       }
     }
@@ -299,14 +302,12 @@ namespace GraphSeg
     {
       for (const auto& s: sg1)
       {
-        for (const auto& max_clique_nodes: max_cliques[s])
-        { 
-          vector<Vertex> tmp;
-          set_intersection(max_clique_nodes.begin(), max_clique_nodes.end(), sg2.begin(), sg2.end(), inserter(tmp, tmp.end()));
-          if (tmp.size() != 0) 
-          {
-            return true;
-          }
+        auto& target_clique_vertices = max_cliques_internal[s];
+        vector<Vertex> tmp;
+        set_intersection(target_clique_vertices.begin(), target_clique_vertices.end(), sg2.begin(), sg2.end(), inserter(tmp, tmp.end()));
+        if (tmp.size() != 0) 
+        {
+          return true;
         }
       }
       return false;
@@ -326,10 +327,10 @@ namespace GraphSeg
     {
       for (const auto& clique: max_cliques_set)
       {
-        vector<int> check(graph_size, 0); // TODO: ビットで管理したい
+        vector<int> check(GetGraphSize(), 0); // TODO: ビットで管理したい
         for (const auto& seg_base: clique)
         {
-          VertexSet segment;
+          vector<Vertex> segment;
           
           if (check[seg_base] == 1) 
             continue;
@@ -350,56 +351,70 @@ namespace GraphSeg
     
     void ConstructInvalidSegment()
     {
-      const auto segment_relatedness = [&this](auto itr_seg1, auto itr_seg2) -> double
+      const auto segment_relatedness = [this](auto itr_seg1, auto itr_seg2)
       {
         double rel = 1.0;
         for (const auto& sent1: *itr_seg1)
         {
           for (const auto& sent2: *itr_seg2)
           {
-            rel *= this->em->GetSimilarity(sentence_idx[sent1], sentence_idx[sent2]);
+            rel *= em->GetSimilarity(sentence_idx[sent1], sentence_idx[sent2]);
           }
         }
-        return rel/itr_seg1->size()*seg2->size();
+        return rel / itr_seg1->size() * itr_seg2->size();
       };
 
-      constexpr auto get_merged_segment = [](auto& merged_segment, auto first_itr, auto second_itr) -> vector<Vertex>
+      const auto get_merged_segment = [](auto first_itr, auto second_itr)
       {
-        std::copy(*first_itr.begin(), *first_itr.end(), merged_segment);
-        merged_segment.insert(merged_segment.end(), *second_itr.begin(), *second_itr.end());
+        vector<Vertex> merged_segment;
+        std::copy(first_itr->begin(), first_itr->end(), merged_segment.begin());
+        merged_segment.insert(merged_segment.end(), second_itr->begin(), second_itr->end());
         return merged_segment;
       };
 
       // セグメントセットを順方向に走査し、条件を満たしていないセグメントは前後のいずれかのセグメントとマージ
-      for (auto itr = segment.begin(); itr != segment.end(); ++itr)
+      for (auto itr = segments.begin(); itr != segments.end(); ++itr)
       {
-        if (*itr.size() < minimum_segment_size)
+        if (itr->size() < minimum_segment_size)
         {
-          vector<Vertex> merged_segment;
-          if (itr == segment.begin())
+          if (itr == segments.begin())
           {
-            get_merged_segment(merged_segment, itr, std::next(itr));
-            replace_list(segment, merged_segment, itr, std::next(itr));
+            auto next_itr = std::next(itr);
+            auto merged_segment = get_merged_segment(itr, next_itr);
+            replace_list<
+              decltype(merged_segment), decltype(itr), decltype(next_itr)
+            >(segments, merged_segment, itr, next_itr);
+          } 
+          else if (itr == segments.end()) 
+          {
+            auto prev_itr = std::prev(itr);
+            auto merged_segment = get_merged_segment(prev_itr, itr);
+            replace_list<
+              decltype(merged_segment), decltype(prev_itr), decltype(itr)
+            >(segments, merged_segment, prev_itr, itr);
           }
-          else (itr == segment.end()) // TODO: ここでバグるかも
-          {
-            get_merged_segment(merged_segment, std::prev(itr), itr);
-            replace_list(segment, merged_segment, std::prev(itr), itr);
-          }
-          else
-          {
-            auto before = segment_relatedness(itr, std::prev(itr));
-            auto after = segment_relatedness(it, std::next(itr));
+          else 
+          { 
+            auto prev_itr = std::prev(itr);
+            auto next_itr = std::next(itr);
+            auto before = segment_relatedness(itr, prev_itr);
+            auto after = segment_relatedness(itr, next_itr);
 
             if (before > after)
             {
-              get_merged_segment(merged_segment, std::prev(itr), itr);
-              replace_list(segment, merged_segment, std::prev(itr), itr);  
+              auto prev_itr = std::prev(itr);
+              auto merged_segment = get_merged_segment(prev_itr, itr);
+              replace_list<
+                decltype(merged_segment), decltype(prev_itr), decltype(itr)
+              >(segments, merged_segment, prev_itr, itr);
             }
             else
             {
-              get_merged_segment(merged_segment, itr, std::next(itr));
-              replace_list(segment, merged_segment, itr, std::next(itr)); 
+              auto next_itr = std::next(itr);
+              auto merged_segment = get_merged_segment(itr, next_itr);
+              replace_list<
+                decltype(merged_segment), decltype(itr), decltype(next_itr)
+              >(segments, merged_segment, itr, next_itr);
             }
           }
         }
@@ -421,7 +436,7 @@ namespace GraphSeg
     /// <summary>
     /// 定数時間で計算済み最大クリークを取得出来る
     /// <summary>
-    vector<vector<VertexSet>> max_cliques;
+    vector<vector<Vertex>> max_cliques_internal(vector<Vertex>());
 
     /// <summary>
     /// 計算済みセグメント

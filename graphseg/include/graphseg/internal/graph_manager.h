@@ -14,9 +14,6 @@ namespace GraphSeg
   class GraphManager
   {
   public:
-    GraphManager(SegmentGraph& sg) : graph(sg)
-    {}
-
     GraphManager(SegmentGraph&& sg) : graph(std::move(sg))
     {}
 
@@ -36,12 +33,12 @@ namespace GraphSeg
     /// <summary>
     /// グラフを取得する
     /// </summary>
-    const SegmentGraph& GetGraph() const& 
+    inline SegmentGraph& GetGraph() &
     { 
       return graph; 
     }
 
-    SegmentGraph&& GetGraph() &&
+    inline SegmentGraph&& GetGraph() &&
     {
       return std::move(graph);
     }

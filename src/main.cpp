@@ -26,7 +26,7 @@ int main()
   gm.SetThreshold(thereshold);
   gm.SetVertices(s);
   gm.SetEdges(em);
-  auto sg = gm.GetGraph();
+  auto& sg = gm.GetGraph();
   sg.SetMaximumClique();
   
   // SegmentGraph sg(3);

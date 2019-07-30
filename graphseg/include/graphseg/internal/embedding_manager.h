@@ -10,7 +10,6 @@
 #include <type_traits>
 #include <array>
 #include <memory>
-
 #include <iostream>
 
 namespace GraphSeg
