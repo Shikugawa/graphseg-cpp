@@ -289,7 +289,9 @@ namespace GraphSeg
       {
         for (auto& clique_vertex: max_clique)
         {
-          max_cliques_internal[clique_vertex].emplace_back(max_clique);
+          max_cliques_internal[clique_vertex].emplace_back(
+            vector<Vertex>(max_clique.begin(), max_clique.end())
+          );
         }
       }
     }
@@ -300,17 +302,20 @@ namespace GraphSeg
     /// </summary>
     bool IsMergable(const vector<Vertex>& sg1, const vector<Vertex>& sg2)
     {
+      int checker = 1;
       for (const auto& s: sg1)
       {
-        auto& target_clique_vertices = max_cliques_internal[s];
-        vector<Vertex> tmp;
-        set_intersection(target_clique_vertices.begin(), target_clique_vertices.end(), sg2.begin(), sg2.end(), inserter(tmp, tmp.end()));
-        if (tmp.size() != 0) 
+        for(auto& target_max_cliques: max_cliques_internal[s])
         {
-          return true;
+          vector<Vertex> tmp;
+          set_intersection(target_max_cliques.begin(), target_max_cliques.end(), sg2.begin(), sg2.end(), inserter(tmp, tmp.end()));
+          if (tmp.size() != 0) 
+          {
+            checker *= 0;
+          }
         }
       }
-      return false;
+      return checker == 0 ? true : false;
     }
 
     set<Vertex> GetNeighbors(Vertex idx)
@@ -436,7 +441,7 @@ namespace GraphSeg
     /// <summary>
     /// 定数時間で計算済み最大クリークを取得出来る
     /// <summary>
-    vector<vector<Vertex>> max_cliques_internal(vector<Vertex>());
+    vector<vector<vector<Vertex>>> max_cliques_internal;
 
     /// <summary>
     /// 計算済みセグメント
