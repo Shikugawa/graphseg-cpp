@@ -208,8 +208,21 @@ namespace GraphSeg
     /// </summary>
     void ConstructSegment()
     {
+      ConstuctMaximumCliqueArrayContainer(); 
+    
       if (segments.size() == 0) 
         ConstructInitSegment();
+
+      std::cout << "Current Segment" << std::endl;
+      for (const auto& segment: segments)
+      {
+        for (auto vertex : segment)
+        {
+          std::cout << vertex << " ";
+        }
+        std::cout << std::endl;
+      }
+      std::cout << "====================" << std::endl;
 
       list<vector<Vertex>> next_segment;
       vector<int> segment_memo(segments.size(), 0); // TODO：bitsetで管理したい。next_segmentに加えられたものは1とする
@@ -217,24 +230,30 @@ namespace GraphSeg
       size_t i = 0;
       for (auto itr = segments.begin(); itr != segments.end(); ++itr)
       {
-        if (segment_memo[i] == 1)
-          continue;
-
-        auto current_segment = *itr;
-        auto adjacent_segment = *std::next(itr);
-        
-        if (IsMergable(current_segment, adjacent_segment))
+        if (segment_memo[i] == 1 || std::next(itr) == segments.end())
         {
-          vector<Vertex> merged_segment;
-          std::copy(current_segment.begin(), current_segment.end(), merged_segment.begin());
-          current_segment.insert(current_segment.end(), adjacent_segment.begin(), adjacent_segment.end());
-          next_segment.emplace_back(merged_segment);
-          segment_memo[i] = 1;
-          segment_memo[i+1] = 1;
           continue;
         }
 
-        segment_memo[i] = 1;
+        auto current_segment = *itr;
+        auto adjacent_segment = std::next(itr);
+
+        if (IsMergable(current_segment, *adjacent_segment))
+        {
+          vector<Vertex> merged_segment;
+          std::copy(current_segment.begin(), current_segment.end(), merged_segment.begin());
+          current_segment.insert(current_segment.end(), adjacent_segment->begin(), adjacent_segment->end());
+          next_segment.emplace_back(merged_segment);
+
+          segment_memo[i] = 1;
+          segment_memo[i+1] = 1;
+        }
+        else
+        {
+          next_segment.emplace_back(current_segment);
+          segment_memo[i] = 1;
+        }
+
         ++i;
       }
 
@@ -281,8 +300,11 @@ namespace GraphSeg
 
         candidates_tmp.insert(v);  
         excluded.insert(v);
-      }
+      }      
+    }
 
+    void ConstuctMaximumCliqueArrayContainer()
+    {
       // TODO: 一度Setで最大クリークを構築するが、定数オーダーで最大クリークが欲しいのでベクターに変換しているが、メモリ効率が悪いし、変換処理も無駄
       max_cliques_internal.resize(max_sentence_size);
       for (auto& max_clique: max_cliques_set)
@@ -303,16 +325,18 @@ namespace GraphSeg
     bool IsMergable(const vector<Vertex>& sg1, const vector<Vertex>& sg2)
     {
       int checker = 1;
+      vector<Vertex> tmp;
+      
       for (const auto& s: sg1)
       {
         for(auto& target_max_cliques: max_cliques_internal[s])
         {
-          vector<Vertex> tmp;
           set_intersection(target_max_cliques.begin(), target_max_cliques.end(), sg2.begin(), sg2.end(), inserter(tmp, tmp.end()));
           if (tmp.size() != 0) 
           {
             checker *= 0;
           }
+          tmp.clear();
         }
       }
       return checker == 0 ? true : false;
@@ -348,7 +372,6 @@ namespace GraphSeg
             segment.emplace_back(c);
             check[c] = 1;
           }
-
           segments.emplace_back(segment);
         }
       }
@@ -386,17 +409,13 @@ namespace GraphSeg
           {
             auto next_itr = std::next(itr);
             auto merged_segment = get_merged_segment(itr, next_itr);
-            replace_list<
-              decltype(merged_segment), decltype(itr), decltype(next_itr)
-            >(segments, merged_segment, itr, next_itr);
+            replace_list(segments, merged_segment, itr, next_itr);
           } 
           else if (itr == segments.end()) 
           {
             auto prev_itr = std::prev(itr);
             auto merged_segment = get_merged_segment(prev_itr, itr);
-            replace_list<
-              decltype(merged_segment), decltype(prev_itr), decltype(itr)
-            >(segments, merged_segment, prev_itr, itr);
+            replace_list(segments, merged_segment, prev_itr, itr);
           }
           else 
           { 
@@ -409,17 +428,13 @@ namespace GraphSeg
             {
               auto prev_itr = std::prev(itr);
               auto merged_segment = get_merged_segment(prev_itr, itr);
-              replace_list<
-                decltype(merged_segment), decltype(prev_itr), decltype(itr)
-              >(segments, merged_segment, prev_itr, itr);
+              replace_list(segments, merged_segment, prev_itr, itr);
             }
             else
             {
               auto next_itr = std::next(itr);
               auto merged_segment = get_merged_segment(itr, next_itr);
-              replace_list<
-                decltype(merged_segment), decltype(itr), decltype(next_itr)
-              >(segments, merged_segment, itr, next_itr);
+              replace_list(segments, merged_segment, itr, next_itr);
             }
           }
         }

@@ -28,7 +28,7 @@ int main()
   gm.SetEdges(em);
   auto& sg = gm.GetGraph();
   sg.SetMaximumClique();
-  
+  sg.ConstructSegment();
   // SegmentGraph sg(3);
   // sg.SetSentence(s[0]);
   // sg.SetSentence(s[1]);
