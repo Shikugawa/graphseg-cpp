@@ -12,9 +12,11 @@ int main()
   // Set texts
   double thereshold = 0.05;
   vector<Sentence> s;
-  s.emplace_back(Sentence("a very large linguistic natural language"));
-  s.emplace_back(Sentence("I play"));
-  s.emplace_back(Sentence("a very large linguistic natural language"));
+  s.emplace_back(Sentence("I want to eat rabbit"));
+  s.emplace_back(Sentence("rabbit is easy to eat"));
+  s.emplace_back(Sentence("turtle is slower than rabbit"));
+  s.emplace_back(Sentence("turtle is yummy"));
+  s.emplace_back(Sentence("especially, turtle soup is delicious"));
   EmbeddingManager em;
 
   for(auto& _s: s)
@@ -22,23 +24,16 @@ int main()
     em.AddSentenceWords(_s);
   }
   em.GetWordEmbeddings();
-  GraphManager gm(SegmentGraph(3));
+  
+  GraphManager gm(SegmentGraph(s.size()));
   gm.SetThreshold(thereshold);
   gm.SetVertices(s);
   gm.SetEdges(em);
+
   auto& sg = gm.GetGraph();
   sg.SetMaximumClique();
-  sg.ConstructSegment();
-  // SegmentGraph sg(3);
-  // sg.SetSentence(s[0]);
-  // sg.SetSentence(s[1]);
-  // sg.SetSentence(s[2]);
-  // sg.SetEdge(0, 1, -30.2);
-  // sg.SetEdge(1, 2, -15.2);
-  // sg.SetEdge(2, 0, -15.8);
-  // sg.SetMaximumClique();
-  
-  std::cout << sg << std::endl;
+
+  std::cout << "======== maximum clique set =========" << std::endl;
   for(const auto& v: sg.GetMaximumClique())
   {
     std::cout << "{";
@@ -48,5 +43,9 @@ int main()
     }
     std::cout << "}" << std::endl;
   }
+  std::cout << "====================================" << std::endl;
+
+  sg.ConstructSegment();
+  
   return 0;
 }

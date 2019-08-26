@@ -208,41 +208,38 @@ namespace GraphSeg
     /// </summary>
     void ConstructSegment()
     {
-      ConstuctMaximumCliqueArrayContainer(); 
-    
       if (segments.size() == 0) 
         ConstructInitSegment();
 
-      std::cout << "Current Segment" << std::endl;
-      for (const auto& segment: segments)
-      {
-        for (auto vertex : segment)
-        {
-          std::cout << vertex << " ";
-        }
-        std::cout << std::endl;
-      }
-      std::cout << "====================" << std::endl;
-
       list<vector<Vertex>> next_segment;
-      vector<int> segment_memo(segments.size(), 0); // TODO：bitsetで管理したい。next_segmentに加えられたものは1とする
+
+      // マージできるか調べたセグメントを記録しておく。二重でセグメントが調べられるのを防ぐ
+      // TODO：bitsetで管理したい。next_segmentに加えられたものは1とする
+      vector<int> segment_memo(segments.size(), 0);
 
       size_t i = 0;
       for (auto itr = segments.begin(); itr != segments.end(); ++itr)
       {
-        if (segment_memo[i] == 1 || std::next(itr) == segments.end())
+        if (segment_memo[i] == 1)
         {
           continue;
         }
 
-        auto current_segment = *itr;
-        auto adjacent_segment = std::next(itr);
+        if (std::next(itr) == segments.end())
+        {
+          segment_memo[i] = 1;
+          next_segment.emplace_back(*itr);
+          continue;
+        }
 
-        if (IsMergable(current_segment, *adjacent_segment))
+        auto current_segment = *itr;
+        auto adjacent_segment = *std::next(itr);
+
+        if (IsMergable(current_segment, adjacent_segment))
         {
           vector<Vertex> merged_segment;
           std::copy(current_segment.begin(), current_segment.end(), merged_segment.begin());
-          current_segment.insert(current_segment.end(), adjacent_segment->begin(), adjacent_segment->end());
+          current_segment.insert(current_segment.end(), adjacent_segment.begin(), adjacent_segment.end());
           next_segment.emplace_back(merged_segment);
 
           segment_memo[i] = 1;
@@ -256,10 +253,10 @@ namespace GraphSeg
 
         ++i;
       }
-
+      
       segments.clear();
       segments = next_segment;
-
+      
       ConstructInvalidSegment();
     }
 
@@ -311,13 +308,13 @@ namespace GraphSeg
       {
         for (auto& clique_vertex: max_clique)
         {
+          std::cout << clique_vertex << std::endl;
           max_cliques_internal[clique_vertex].emplace_back(
             vector<Vertex>(max_clique.begin(), max_clique.end())
           );
         }
       }
     }
-
     /// <summary>
     /// ファーストセグメント中のあるノードを含む最大クリークが、セカンドセグメントに含まれている場合はマージしても良いとする。
     /// 最大クリークに含まれているということは、そのノードで示されているトピックがセカンドセグメントで言及されている可能性があるという事である。
@@ -331,13 +328,12 @@ namespace GraphSeg
       {
         for(auto& target_max_cliques: max_cliques_internal[s])
         {
-          set_intersection(target_max_cliques.begin(), target_max_cliques.end(), sg2.begin(), sg2.end(), inserter(tmp, tmp.end()));
           if (tmp.size() != 0) 
           {
             checker *= 0;
           }
           tmp.clear();
-        }
+        }  
       }
       return checker == 0 ? true : false;
     }
@@ -377,48 +373,56 @@ namespace GraphSeg
       }
     }
     
+    /// <summary>
+    /// 条件を満たしていない、つまり、長さの閾値を越えていないセグメントに関して前後のものとマージし、正しいセグメントを構築する
+    /// </summary>
     void ConstructInvalidSegment()
     {
+      constexpr auto get_merged_segment = [](auto first_itr, auto second_itr)
+      {
+        vector<Vertex> merged_segment = *first_itr;
+        merged_segment.resize(first_itr->size() + second_itr->size());
+        merged_segment.insert(merged_segment.end(), second_itr->begin(), second_itr->end());
+        return merged_segment;
+      };
+
       const auto segment_relatedness = [this](auto itr_seg1, auto itr_seg2)
       {
         double rel = 1.0;
         for (const auto& sent1: *itr_seg1)
         {
+          std::cout << rel << std::endl;
           for (const auto& sent2: *itr_seg2)
           {
             rel *= em->GetSimilarity(sentence_idx[sent1], sentence_idx[sent2]);
-          }
+          } 
         }
         return rel / itr_seg1->size() * itr_seg2->size();
       };
 
-      const auto get_merged_segment = [](auto first_itr, auto second_itr)
-      {
-        vector<Vertex> merged_segment;
-        std::copy(first_itr->begin(), first_itr->end(), merged_segment.begin());
-        merged_segment.insert(merged_segment.end(), second_itr->begin(), second_itr->end());
-        return merged_segment;
-      };
-
-      // セグメントセットを順方向に走査し、条件を満たしていないセグメントは前後のいずれかのセグメントとマージ
       for (auto itr = segments.begin(); itr != segments.end(); ++itr)
       {
+        if (std::next(itr) == segments.end())
+        {
+          break;
+        }
+
         if (itr->size() < minimum_segment_size)
         {
-          if (itr == segments.begin())
+          if (itr == segments.begin()) // 最初のセグメントは一個後のものしかマージ対象にならない
           {
             auto next_itr = std::next(itr);
             auto merged_segment = get_merged_segment(itr, next_itr);
             replace_list(segments, merged_segment, itr, next_itr);
           } 
-          else if (itr == segments.end()) 
+          else if (itr == segments.end()) // 最後のセグメントは一個前のものしかマージ対象にならない
           {
             auto prev_itr = std::prev(itr);
             auto merged_segment = get_merged_segment(prev_itr, itr);
             replace_list(segments, merged_segment, prev_itr, itr);
           }
-          else 
-          { 
+          else // その他のセグメントは、セグメント関連度スコアが高いものとマージするようにする
+          {
             auto prev_itr = std::prev(itr);
             auto next_itr = std::next(itr);
             auto before = segment_relatedness(itr, prev_itr);
