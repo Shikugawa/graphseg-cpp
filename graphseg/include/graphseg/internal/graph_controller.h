@@ -1,20 +1,20 @@
-#ifndef GRAPHSEG_INTERNAL_GRAPHSEG_MANAGER_H
-#define GRAPHSEG_INTERNAL_GRAPHSEG_MANAGER_H
+#ifndef GRAPHSEG_INTERNAL_GRAPHSEG_GRAPH_CONTROLLER_H
+#define GRAPHSEG_INTERNAL_GRAPHSEG_GRAPH_CONTROLLER_H
 
 #include "segment_graph.h"
-#include "embedding_manager.h"
+#include "embedding.h"
 #include "sentence.h"
 #include <vector>
 #include <iostream>
 
-namespace GraphSeg
+namespace GraphSeg::internal
 {
   using std::vector;
 
-  class GraphManager
+  class GraphController
   {
   public:
-    GraphManager(SegmentGraph&& sg) : graph(std::move(sg))
+    GraphController(SegmentGraph&& sg) : graph(std::move(sg))
     {}
 
     /// <summary>
@@ -67,7 +67,7 @@ namespace GraphSeg
     /// <summary>
     /// 文章の類似度を計算して重みを設定する
     /// </summary>
-    void SetEdges(EmbeddingManager& em)
+    void SetEdges(Embedding& em)
     {
       const auto graph_size = graph.GetGraphSize();
       assert(graph_size > 1);

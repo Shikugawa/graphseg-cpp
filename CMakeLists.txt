@@ -41,6 +41,12 @@ find_package(Boost 1.65.0.0 REQUIRED)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 # =======================
 
+# ======== SPDLOG =======
+set(SPDLOG_INCLUDE_DIRS "~/vcpkg/packages/spdlog_x64-osx/share/spdlog")
+find_package(spdlog CONFIG REQUIRED)
+include_directories(SYSTEM ${SPDLOG_INCLUDE_DIRS})
+# =======================
+
 add_subdirectory(graphseg)
 add_subdirectory(src)
 

@@ -4,7 +4,7 @@
 #include <vector>
 #include <iostream>
 
-namespace GraphSeg
+namespace GraphSeg::internal
 {
   using std::string, std::vector;
 

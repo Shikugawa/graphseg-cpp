@@ -1,12 +1,12 @@
-#ifndef GRAPHSEG_CPP_GRAPHSEG_INTERNAL_UTIL_H
-#define GRAPHSEG_CPP_GRAPHSEG_INTERNAL_UTIL_H
+#ifndef GRAPHSEG_CPP_GRAPHSEG_INTERNAL_UTIL_EXEC_H
+#define GRAPHSEG_CPP_GRAPHSEG_INTERNAL_UTIL_EXEC_H
 
 #include <memory>
 #include <array>
 #include <cstdio>
 #include <cstdlib>
 
-namespace GraphSeg
+namespace GraphSeg::internal::utils
 {
   using std::array, std::shared_ptr;
 

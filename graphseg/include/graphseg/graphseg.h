@@ -3,7 +3,7 @@
 
 #include "graphseg/internal/segment_graph.h"
 #include "graphseg/internal/sentence.h"
-#include "graphseg/internal/graph_manager.h"
-#include "graphseg/internal/embedding_manager.h"
+#include "graphseg/internal/graph_controller.h"
+#include "graphseg/internal/embedding.h"
 
 #endif

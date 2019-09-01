@@ -1,8 +1,9 @@
-#ifndef GRAPHSEG_CPP_GRAPHSEG_INTERNAL_EMBEDDING_MANAGER_H
-#define GRAPHSEG_CPP_GRAPHSEG_INTERNAL_EMBEDDING_MANAGER_H
+#ifndef GRAPHSEG_CPP_GRAPHSEG_INTERNAL_EMBEDDING_H
+#define GRAPHSEG_CPP_GRAPHSEG_INTERNAL_EMBEDDING_H
 
 #include "sentence.h"
-#include "util.h"
+#include "utils/exec.h"
+
 #include "frequency.h"
 #include <rapidjson/document.h>
 #include <unordered_map>
@@ -12,7 +13,7 @@
 #include <memory>
 #include <iostream>
 
-namespace GraphSeg
+namespace GraphSeg::internal
 {
   using namespace rapidjson;
   using std::unordered_map, std::array, std::min, std::sqrt, std::log, 
@@ -21,16 +22,16 @@ namespace GraphSeg
   static constexpr auto DIM = 300;
   const string COMMAND_VECTORIZER = home + "/.pyenv/shims/python" + " " + home + "/graphseg-cpp/script/vectorizer.py";
 
-  class EmbeddingManager
+  class Embedding
   {
   public:
     using WordEmbedding = array<double, DIM>;
 
-    EmbeddingManager() = default;
+    Embedding() = default;
     
-    EmbeddingManager(const EmbeddingManager&) = delete;
+    Embedding(const Embedding&) = delete;
 
-    EmbeddingManager& operator=(const EmbeddingManager&) = delete;
+    Embedding& operator=(const Embedding&) = delete;
 
     /// <summary>
     /// センテンスの単語から埋め込みを得る際の前処理
@@ -75,7 +76,7 @@ namespace GraphSeg
       int code;
       const string term_stream = GetTermStream();
       const string cmd = "echo " +  term_stream + " | " + COMMAND_VECTORIZER;
-      auto result = exec(cmd.c_str(), code);
+      auto result = utils::exec(cmd.c_str(), code);
       Document doc;
       const auto parse_result = doc.Parse(result.c_str()).HasParseError();
       assert(parse_result == false);

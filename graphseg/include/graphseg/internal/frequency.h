@@ -1,7 +1,7 @@
 #ifndef GRAPHSEG_CPP_GRAPHSEG_INTERNAL_FREQUENCY_H
 #define GRAPHSEG_CPP_GRAPHSEG_INTERNAL_FREQUENCY_H
 
-#include "util.h"
+#include "utils/exec.h"
 #include <string>
 #include <utility>
 #include <type_traits>
@@ -10,7 +10,7 @@
 #include <iostream>
 #include <cstring>
 
-namespace GraphSeg
+namespace GraphSeg::internal
 {
   using std::unordered_map, std::string, std::enable_if_t, std::is_same_v;
   using namespace rapidjson;
@@ -65,7 +65,7 @@ namespace GraphSeg
     {
       int code;
       const string cmd = "echo " + stream + " | " + COMMAND_FREQUENCY;
-      auto result = exec(cmd.c_str(), code);
+      auto result = utils::exec(cmd.c_str(), code);
       Document doc;
       const auto parse_result = doc.Parse(result.c_str()).HasParseError();
       assert(parse_result == false);

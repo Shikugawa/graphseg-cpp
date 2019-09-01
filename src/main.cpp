@@ -1,8 +1,9 @@
+#define DEBUG
+
 #include "graphseg/graphseg.h"
 #include <vector>
 #include <iostream>
 #include <string>
-#define DEBUG
 
 using namespace std;
 using namespace GraphSeg;
@@ -17,7 +18,7 @@ int main()
   s.emplace_back(Sentence("turtle is slower than rabbit"));
   s.emplace_back(Sentence("turtle is yummy"));
   s.emplace_back(Sentence("especially, turtle soup is delicious"));
-  EmbeddingManager em;
+  Embedding em;
 
   for(auto& _s: s)
   {
@@ -25,7 +26,7 @@ int main()
   }
   em.GetWordEmbeddings();
   
-  GraphManager gm(SegmentGraph(s.size()));
+  GraphController gm(SegmentGraph(s.size()));
   gm.SetThreshold(thereshold);
   gm.SetVertices(s);
   gm.SetEdges(em);
