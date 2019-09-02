@@ -1,5 +1,5 @@
-#ifndef GRAPHSEG_CPP_GRAPHSEG_UNDIRECTED_GRAPH_H
-#define GRAPHSEG_CPP_GRAPHSEG_UNDIRECTED_GRAPH_H 
+#ifndef GRAPHSEG_CPP_GRAPHSEG_GRAPH_UNDIRECTED_GRAPH_H
+#define GRAPHSEG_CPP_GRAPHSEG_GRAPH_UNDIRECTED_GRAPH_H 
 
 #include "graphseg/internal/utils/nameof.hpp"
 #include "graphseg/internal/segmentable.h"

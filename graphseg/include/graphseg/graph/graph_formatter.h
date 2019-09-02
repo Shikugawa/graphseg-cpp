@@ -1,5 +1,5 @@
-#ifndef GRAPHSEG_GRAPH_FORMATTER_H
-#define GRAPHSEG_GRAPH_FORMATTER_H
+#ifndef GRAPHSEG_GRAPH_GRAPH_FORMATTER_H
+#define GRAPHSEG_GRAPH_GRAPH_FORMATTER_H
 
 #include "graphseg/graph/undirected_graph.h"
 

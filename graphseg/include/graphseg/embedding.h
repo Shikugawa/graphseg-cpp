@@ -1,5 +1,5 @@
-#ifndef GRAPHSEG_CPP_GRAPHSEG_INTERNAL_EMBEDDING_H
-#define GRAPHSEG_CPP_GRAPHSEG_INTERNAL_EMBEDDING_H
+#ifndef GRAPHSEG_CPP_GRAPHSEG_EMBEDDING_H
+#define GRAPHSEG_CPP_GRAPHSEG_EMBEDDING_H
 
 #include "graphseg/sentence.h"
 #include "graphseg/internal/utils/exec.h"
@@ -122,7 +122,7 @@ namespace GraphSeg
           result += sim*min({InformationContent(term), InformationContent(target_term)});
         }
       }
-      return result;
+      return -result;
     }
 
   private:
