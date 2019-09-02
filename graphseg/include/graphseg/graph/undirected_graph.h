@@ -1,23 +1,19 @@
-#ifndef GRAPHSEG_CPP_GRAPHSEG_SEGMENT_GRAPH_H
-#define GRAPHSEG_CPP_GRAPHSEG_SEGMENT_GRAPH_H 
+#ifndef GRAPHSEG_CPP_GRAPHSEG_UNDIRECTED_GRAPH_H
+#define GRAPHSEG_CPP_GRAPHSEG_UNDIRECTED_GRAPH_H 
 
-#include "utils/nameof.hpp"
-#include "sentence.h"
-#include "embedding.h"
-#include "segmentable.h"
+#include "graphseg/internal/utils/nameof.hpp"
+#include "graphseg/internal/segmentable.h"
+#include "graphseg/sentence.h"
 
-#include <type_traits>
 #include <string>
 #include <iterator>
 #include <memory>
-#include <algorithm>
 #include <iostream>
-#include <tuple>
 #include <ostream>
 #include <iterator>
 #include <unordered_map>
 
-namespace GraphSeg::internal
+namespace GraphSeg::graph
 {
   using std::unordered_map, std::make_pair, std::string, std::set_intersection,
         std::set_union, std::set_difference, std::inserter, std::basic_ostream;
@@ -25,23 +21,13 @@ namespace GraphSeg::internal
   /// <summary>
   /// 与えられた文章から構築された無向グラフ
   /// </summary>
-  class SegmentGraph : public Segmentable<SegmentGraph>
+  class UndirectedGraph : public Segmentable<UndirectedGraph>
   {
   public:
-    using Vertex = unsigned int;
-    using VertexSet = set<Vertex>;
     using Edge = std::pair<Vertex, double>;
+    using Base = Segmentable<UndirectedGraph>;
 
-    using Base = Segmentable<SegmentGraph>;
-
-    /// <summary>
-    /// 単語の埋め込み情報
-    /// </summary>
-    std::unique_ptr<Embedding> em;
-
-    SegmentGraph(Vertex _max_sentence_size) : max_sentence_size(_max_sentence_size)
-    {
-    }
+    explicit UndirectedGraph() = default;
 
     /// <summary>
     /// セグメントグラフにノードを与える
@@ -176,7 +162,7 @@ namespace GraphSeg::internal
     void ConstuctMaximumCliqueArrayContainer()
     {
       // TODO: 一度Setで最大クリークを構築するが、定数オーダーで最大クリークが欲しいのでベクターに変換しているが、メモリ効率が悪いし、変換処理も無駄
-      max_cliques_internal.resize(max_sentence_size);
+      max_cliques_internal.resize(node_idx);
       for (auto& max_clique: max_cliques_set)
       {
         for (auto& clique_vertex: max_clique)
@@ -216,8 +202,12 @@ namespace GraphSeg::internal
     /// <summary>
     vector<vector<vector<Vertex>>> max_cliques_internal;
 
+    /// <summary>
+    /// 現在のグラフサイズ
+    /// </summary>
     Vertex node_idx = 0;
-    Vertex max_sentence_size;
+
+    friend Base;
   };
 } // namespace GraphSeg
 

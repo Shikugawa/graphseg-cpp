@@ -1,10 +1,11 @@
 #ifndef GRAPHSEG_CPP_GRAPHSEG_SENTENCE_H
 #define GRAPHSEG_CPP_GRAPHSEG_SENTENCE_H
+
 #include <string>
 #include <vector>
 #include <iostream>
 
-namespace GraphSeg::internal
+namespace GraphSeg
 {
   using std::string, std::vector;
 

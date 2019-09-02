@@ -1,7 +1,13 @@
-#ifndef GRAPHSEG_GRAPH_FORMAT_H
-#define GRAPHSEG_GRAPH_FORMAT_H
+#ifndef GRAPHSEG_GRAPH_FORMATTER_H
+#define GRAPHSEG_GRAPH_FORMATTER_H
 
-namespace GraphSeg
+#include "graphseg/graph/undirected_graph.h"
+
+#include <string>
+#include <vector>
+#include <unordered_map>
+
+namespace GraphSeg::graph
 {
   enum class GraphType
   {
@@ -15,22 +21,22 @@ namespace GraphSeg
     {
       struct FormattedTargetNode 
       {
-        string id;
+        std::string id;
         double edge_weight;
 
-        FormattedTargetNode(string _id, double _weight) : id(_id), edge_weight(_weight)
+        FormattedTargetNode(std::string _id, double _weight) : id(_id), edge_weight(_weight)
         {}
       };
 
       double score;
-      vector<FormattedTargetNode> targets;
+      std::vector<FormattedTargetNode> targets;
     };
 
     GraphType graph_type;
-    unordered_map<string, FormattedNode> value;
+    std::unordered_map<std::string, FormattedNode> value;
   };
 
-  FormattedGraph format(const SegmentGraph& sg)
+  FormattedGraph format(const UndirectedGraph& sg)
   {
     using FormattedNode = FormattedGraph::FormattedNode;
     using FormattedTargetNode = FormattedNode::FormattedTargetNode;
@@ -79,7 +85,7 @@ namespace GraphSeg
   }
 
   template <typename CharT, typename Traits>
-  basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, const SegmentGraph& sg)
+  basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, const UndirectedGraph& sg)
   {
     for(size_t i = 0; i < sg.GetGraphSize(); ++i)
     {

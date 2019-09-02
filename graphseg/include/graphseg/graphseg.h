@@ -1,9 +1,10 @@
 #ifndef GRAPHSEG_GRAPHSEG_H
 #define GRAPHSEG_GRAPHSEG_H
 
-#include "graphseg/internal/segment_graph.h"
-#include "graphseg/internal/sentence.h"
-#include "graphseg/internal/graph_controller.h"
-#include "graphseg/internal/embedding.h"
+#include "graphseg/graph/graph_formatter.h"
+#include "graphseg/graph/undirected_graph.h"
+#include "graphseg/graph_container.h"
+#include "graphseg/embedding.h"
+#include "graphseg/sentence.h"
 
 #endif

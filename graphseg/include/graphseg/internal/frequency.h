@@ -2,6 +2,7 @@
 #define GRAPHSEG_CPP_GRAPHSEG_INTERNAL_FREQUENCY_H
 
 #include "utils/exec.h"
+
 #include <string>
 #include <utility>
 #include <type_traits>

@@ -1,10 +1,14 @@
 #ifndef GRAPHSEG_CPP_GRAPHSEG_SEGMENTABLE_H
 #define GRAPHSEG_CPP_GRAPHSEG_SEGMENTABLE_H
 
+#include "graphseg/embedding.h"
+
+#include <type_traits>
 #include <list>
 #include <vector>
 #include <set>
 #include <tuple>
+#include <algorithm>
 #include <spdlog/spdlog.h>
 
 namespace GraphSeg::internal
@@ -12,7 +16,8 @@ namespace GraphSeg::internal
   using std::list, std::vector, std::set, std::tuple;
 
   using Vertex = unsigned int;
-
+  using VertexSet = set<Vertex>;
+  
   template <typename T>
   struct is_valid_iterable : std::disjunction<
     std::is_same<T, list<vector<Vertex>>>,
@@ -77,6 +82,17 @@ namespace GraphSeg::internal
   template <class T>
   class Segmentable
   {
+  private:
+    /// <summary>
+    /// 最小セグメントサイズ
+    /// </summary>
+    size_t minimum_segment_size = 2;
+
+    /// <summary>
+    /// 計算済みセグメント
+    /// <summary>
+    list<vector<Vertex>> segments;
+
   public:
     /// <summary>
     /// 最小セグメントサイズの左辺値参照を取得する
@@ -99,10 +115,35 @@ namespace GraphSeg::internal
       return std::move(segments);
     }
 
+private:
+    /// <summary>
+    /// ファーストセグメント中のあるノードを含む最大クリークが、セカンドセグメントに含まれている場合はマージしても良いとする。
+    /// 最大クリークに含まれているということは、そのノードで示されているトピックがセカンドセグメントで言及されている可能性があるという事である。
+    /// </summary>
+    bool IsMergable(const vector<Vertex>& sg1, const vector<Vertex>& sg2)
+    {
+      int checker = 1;
+      vector<Vertex> tmp;
+      
+      for (const auto& s: sg1)
+      {
+        for(auto& target_max_cliques: Derived().max_cliques_internal[s])
+        {
+          if (tmp.size() != 0) 
+          {
+            checker *= 0;
+          }
+          tmp.clear();
+        }  
+      }
+      return checker == 0 ? true : false;
+    }
+
+public:
     /// <summary>
     /// 最大クリークからセグメントを構築する
     /// </summary>
-    void ConstructSegment()
+    void ConstructSegment(const Embedding& embedding)
     {
       if (segments.size() == 0) 
         ConstructInitSegment();
@@ -159,7 +200,7 @@ namespace GraphSeg::internal
       spdlog::info("===========================");
 #endif
 
-      ConstructInvalidSegment();
+      ConstructInvalidSegment(embedding);
     }
   
   private:
@@ -190,7 +231,7 @@ namespace GraphSeg::internal
 
           check[seg_base] = 1;
           segment.emplace_back(seg_base);
-          const auto candidates = GetNeighbors(seg_base) & clique;
+          const auto candidates = Derived().GetNeighbors(seg_base) & clique;
           
           for (const auto& c: candidates)
           {
@@ -212,7 +253,7 @@ namespace GraphSeg::internal
     /// <summary>
     /// 条件を満たしていない、つまり、長さの閾値を越えていないセグメントに関して前後のものとマージし、正しいセグメントを構築する
     /// </summary>
-    void ConstructInvalidSegment()
+    void ConstructInvalidSegment(const Embedding& embedding)
     {
       constexpr auto get_merged_segment = [](auto first_itr, auto second_itr)
       {
@@ -222,15 +263,14 @@ namespace GraphSeg::internal
         return merged_segment;
       };
 
-      const auto segment_relatedness = [this](auto itr_seg1, auto itr_seg2)
+      const auto segment_relatedness = [&embedding, this](auto itr_seg1, auto itr_seg2)
       {
         double rel = 1.0;
         for (const auto& sent1: *itr_seg1)
         {
-          std::cout << rel << std::endl;
           for (const auto& sent2: *itr_seg2)
           {
-            rel *= Derived().em->GetSimilarity(
+            rel *= embedding.GetSimilarity(
               Derived().sentence_idx[sent1], 
               Derived().sentence_idx[sent2]
             );
@@ -284,51 +324,9 @@ namespace GraphSeg::internal
       }
 
       spdlog::info("===== Small Segment =====");
-      for (const auto& segment : segments)
-      {
-        std::string vertex_node;
-        for (const auto& segment_vertex : segment)
-        {
-          vertex_node += std::to_string(segment_vertex);
-          vertex_node += " ";
-        }
-        spdlog::info(vertex_node);
-      }
+      std::cout << segments << std::endl;
       spdlog::info("===========================");
     }
-
-    /// <summary>
-    /// ファーストセグメント中のあるノードを含む最大クリークが、セカンドセグメントに含まれている場合はマージしても良いとする。
-    /// 最大クリークに含まれているということは、そのノードで示されているトピックがセカンドセグメントで言及されている可能性があるという事である。
-    /// </summary>
-    bool IsMergable(const vector<Vertex>& sg1, const vector<Vertex>& sg2)
-    {
-      int checker = 1;
-      vector<Vertex> tmp;
-      
-      for (const auto& s: sg1)
-      {
-        for(auto& target_max_cliques: Derived().max_cliques_internal[s])
-        {
-          if (tmp.size() != 0) 
-          {
-            checker *= 0;
-          }
-          tmp.clear();
-        }  
-      }
-      return checker == 0 ? true : false;
-    }
-
-    /// <summary>
-    /// 最小セグメントサイズ
-    /// </summary>
-    size_t minimum_segment_size = 2;
-
-    /// <summary>
-    /// 計算済みセグメント
-    /// <summary>
-    list<vector<Vertex>> segments;
   };
 }
 

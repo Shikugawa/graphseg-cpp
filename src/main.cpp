@@ -7,46 +7,48 @@
 
 using namespace std;
 using namespace GraphSeg;
+using namespace GraphSeg::graph;
 
-int main()
+vector<Sentence> s;
+Embedding em;
+
+void PrepareSentenceStream()
 {
-  // Set texts
-  double thereshold = 0.05;
-  vector<Sentence> s;
   s.emplace_back(Sentence("I want to eat rabbit"));
   s.emplace_back(Sentence("rabbit is easy to eat"));
   s.emplace_back(Sentence("turtle is slower than rabbit"));
   s.emplace_back(Sentence("turtle is yummy"));
   s.emplace_back(Sentence("especially, turtle soup is delicious"));
-  Embedding em;
+}
 
+void PrepareEmbedding()
+{  
   for(auto& _s: s)
   {
     em.AddSentenceWords(_s);
   }
   em.GetWordEmbeddings();
-  
-  GraphController gm(SegmentGraph(s.size()));
-  gm.SetThreshold(thereshold);
-  gm.SetVertices(s);
-  gm.SetEdges(em);
+}
 
-  auto& sg = gm.GetGraph();
+int main()
+{
+  // Set texts
+  double thereshold = 0.05;
+
+  PrepareSentenceStream();
+  PrepareEmbedding();
+
+  UndirectedGraph ug;
+
+  GraphContainer ctr(ug);
+  ctr.SetThreshold(thereshold);
+  ctr.SetVertices(s);
+  ctr.SetEdges(em);
+
+  auto& sg = ctr.GetGraph();
+
   sg.SetMaximumClique();
-
-  std::cout << "======== maximum clique set =========" << std::endl;
-  for(const auto& v: sg.GetMaximumClique())
-  {
-    std::cout << "{";
-    for(const auto& r: v)
-    {
-      std::cout << r << ",";
-    }
-    std::cout << "}" << std::endl;
-  }
-  std::cout << "====================================" << std::endl;
-
-  sg.ConstructSegment();
+  sg.ConstructSegment(em);
   
   return 0;
 }

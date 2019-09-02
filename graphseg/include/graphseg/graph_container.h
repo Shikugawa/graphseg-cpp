@@ -1,20 +1,22 @@
-#ifndef GRAPHSEG_INTERNAL_GRAPHSEG_GRAPH_CONTROLLER_H
-#define GRAPHSEG_INTERNAL_GRAPHSEG_GRAPH_CONTROLLER_H
+#ifndef GRAPHSEG_INTERNAL_GRAPHSEG_GRAPH_CONTAINER_H
+#define GRAPHSEG_INTERNAL_GRAPHSEG_GRAPH_CONTAINER_H
 
-#include "segment_graph.h"
-#include "embedding.h"
-#include "sentence.h"
-#include <vector>
-#include <iostream>
+#include "graphseg/graph/undirected_graph.h"
+#include "graphseg/embedding.h"
+#include "graphseg/sentence.h"
 
-namespace GraphSeg::internal
+namespace GraphSeg
 {
+  using namespace graph;
   using std::vector;
 
-  class GraphController
+  class GraphContainer
   {
   public:
-    GraphController(SegmentGraph&& sg) : graph(std::move(sg))
+    GraphContainer(UndirectedGraph&& ud) : graph(std::move(ud))
+    {}
+
+    GraphContainer(const UndirectedGraph& ud) : graph(std::move(ud))
     {}
 
     /// <summary>
@@ -33,12 +35,12 @@ namespace GraphSeg::internal
     /// <summary>
     /// グラフを取得する
     /// </summary>
-    inline SegmentGraph& GetGraph() &
+    inline UndirectedGraph& GetGraph() &
     { 
       return graph; 
     }
 
-    inline SegmentGraph&& GetGraph() &&
+    inline UndirectedGraph&& GetGraph() &&
     {
       return std::move(graph);
     }
@@ -90,7 +92,7 @@ namespace GraphSeg::internal
 
   private:
     double thereshold;
-    SegmentGraph graph;
+    UndirectedGraph graph;
     vector<Sentence> sentences;
   };
 }

@@ -1,21 +1,22 @@
 #ifndef GRAPHSEG_CPP_GRAPHSEG_INTERNAL_EMBEDDING_H
 #define GRAPHSEG_CPP_GRAPHSEG_INTERNAL_EMBEDDING_H
 
-#include "sentence.h"
-#include "utils/exec.h"
+#include "graphseg/sentence.h"
+#include "graphseg/internal/utils/exec.h"
+#include "graphseg/internal/frequency.h"
 
-#include "frequency.h"
 #include <rapidjson/document.h>
 #include <unordered_map>
 #include <tuple>
 #include <type_traits>
 #include <array>
 #include <memory>
-#include <iostream>
 
-namespace GraphSeg::internal
+namespace GraphSeg
 {
   using namespace rapidjson;
+  using namespace internal;
+
   using std::unordered_map, std::array, std::min, std::sqrt, std::log, 
         std::pow, std::tuple, std::get, std::make_tuple, std::unique_ptr;
 
@@ -97,24 +98,24 @@ namespace GraphSeg::internal
     /// <summary>
     /// 単語ベクトルの取得
     /// </summary>
-    inline WordEmbedding& GetVector(const string& term)
+    inline const WordEmbedding& GetVector(const string& term) const
     { 
-      return get<0>(words[term]); 
+      return get<0>(words.at(term)); 
     }
     
     /// <summary>
     /// コサイン類似度に基づくセンテンス間の類似度を得る
     /// 負数で小さいほど類似度が高いので符号を入れ替える
     /// </summary>
-    double GetSimilarity(const Sentence& sg1, const Sentence& sg2)
+    double GetSimilarity(const Sentence& sg1, const Sentence& sg2) const&
     {
       double result = 0.0;
       for(const auto& term: sg1.GetTerms())
       {
         for(const auto& target_term: sg2.GetTerms())
         {
-          const auto& v1 = this->GetVector(term);
-          const auto& v2 = this->GetVector(target_term);
+          const auto& v1 = GetVector(term);
+          const auto& v2 = GetVector(target_term);
           if (IsStopWord(v1) || IsStopWord(v2)) continue;
           assert(v1.size() == v2.size());
           auto sim = CosineSimilarity(v1.cbegin(), v1.cend(), v2.cbegin(), v2.cend());
@@ -126,7 +127,7 @@ namespace GraphSeg::internal
 
   private:
     template <class ForwardIterator>
-    double CosineSimilarity(ForwardIterator _abegin, ForwardIterator _aend, ForwardIterator _bbegin, ForwardIterator _bend)
+    double CosineSimilarity(ForwardIterator _abegin, ForwardIterator _aend, ForwardIterator _bbegin, ForwardIterator _bend) const
     {
       double q = 0, d = 0, qd = 0;
       auto a = _abegin;
@@ -142,7 +143,7 @@ namespace GraphSeg::internal
       return qd/(sqrt(q)*sqrt(d));
     }
 
-    double InformationContent(const string& term)
+    double InformationContent(const string& term) const
     {
       const auto numerator = frequency->GetSize() + frequency->GetSumFreq();
       const auto denominator = frequency->GetFrequency(term) + 1;
@@ -184,7 +185,7 @@ namespace GraphSeg::internal
     /// <summary>
     /// 零ベクトルならStop Wordであるとみなす
     /// </summary>
-    bool IsStopWord(const array<double, DIM>& d)
+    bool IsStopWord(const array<double, DIM>& d) const
     {
       for(size_t i = 0; i < DIM; ++i)
       {
