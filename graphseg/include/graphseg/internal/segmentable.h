@@ -9,7 +9,7 @@
 #include <set>
 #include <tuple>
 #include <algorithm>
-#include <spdlog/spdlog.h>
+// #include <spdlog/spdlog.h>
 
 namespace GraphSeg::internal
 {
@@ -60,7 +60,7 @@ namespace GraphSeg::internal
         vertex_node += std::to_string(segment_vertex);
         vertex_node += " ";
       }
-      spdlog::info(vertex_node);
+      // spdlog::info(vertex_node);
     }
   }
 
@@ -122,23 +122,31 @@ private:
     /// </summary>
     bool IsMergable(const vector<Vertex>& sg1, const vector<Vertex>& sg2)
     {
-      int checker = 1;
-      vector<Vertex> tmp;
+      return true;
+      // int checker = 1;
+      // vector<Vertex> tmp;
       
-      for (const auto& s: sg1)
-      {
-        for(auto& target_max_cliques: Derived().max_cliques_internal[s])
-        {
-          if (tmp.size() != 0) 
-          {
-            checker *= 0;
-          }
-          tmp.clear();
-        }  
-      }
-      return checker == 0 ? true : false;
+      // for (const auto& s: sg1)
+      // {
+      //   for(auto& target_max_cliques: Derived().max_cliques_internal[s])
+      //   {
+      //     if (tmp.size() != 0) 
+      //     {
+      //       checker *= 0;
+      //     }
+      //     tmp.clear();
+      //   }  
+      // }
+      // return checker == 0 ? true : false;
     }
 
+    vector<Vertex> GetMergedSegment(const vector<Vertex>& first_itr, const vector<Vertex> second_itr)
+    {
+      vector<Vertex> merged_segment = first_itr;
+      merged_segment.resize(first_itr.size() + second_itr.size());
+      merged_segment.insert(merged_segment.end(), second_itr.begin(), second_itr.end());
+      return merged_segment;
+    }
 public:
     /// <summary>
     /// 最大クリークからセグメントを構築する
@@ -174,11 +182,8 @@ public:
 
         if (IsMergable(current_segment, adjacent_segment))
         {
-          vector<Vertex> merged_segment;
-          std::copy(current_segment.begin(), current_segment.end(), merged_segment.begin());
-          current_segment.insert(current_segment.end(), adjacent_segment.begin(), adjacent_segment.end());
+          vector<Vertex> merged_segment = GetMergedSegment(current_segment, adjacent_segment);
           next_segment.emplace_back(merged_segment);
-
           segment_memo[i] = 1;
           segment_memo[i+1] = 1;
         }
@@ -190,14 +195,14 @@ public:
 
         ++i;
       }
-      
+ 
       segments.clear();
       segments = next_segment;
 
 #ifdef DEBUG
-      spdlog::info("===== Merged Segment =====");
-      std::cout << segments << std::endl;
-      spdlog::info("===========================");
+      // spdlog::info("===== Merged Segment =====");
+      // std::cout << segments << std::endl;
+      // spdlog::info("===========================");
 #endif
 
       ConstructInvalidSegment(embedding);
@@ -244,9 +249,9 @@ public:
       }
 
 #ifdef DEBUG
-      spdlog::info("===== Initial Segment =====");
-      std::cout << segments << std::endl;
-      spdlog::info("===========================");
+      // spdlog::info("===== Initial Segment =====");
+      // std::cout << segments << std::endl;
+      // spdlog::info("===========================");
 #endif
     }
 
@@ -255,14 +260,6 @@ public:
     /// </summary>
     void ConstructInvalidSegment(const Embedding& embedding)
     {
-      constexpr auto get_merged_segment = [](auto first_itr, auto second_itr)
-      {
-        vector<Vertex> merged_segment = *first_itr;
-        merged_segment.resize(first_itr->size() + second_itr->size());
-        merged_segment.insert(merged_segment.end(), second_itr->begin(), second_itr->end());
-        return merged_segment;
-      };
-
       const auto segment_relatedness = [&embedding, this](auto itr_seg1, auto itr_seg2)
       {
         double rel = 1.0;
@@ -291,13 +288,13 @@ public:
           if (itr == segments.begin()) // 最初のセグメントは一個後のものしかマージ対象にならない
           {
             auto next_itr = std::next(itr);
-            auto merged_segment = get_merged_segment(itr, next_itr);
+            auto merged_segment = GetMergedSegment(*itr, *next_itr);
             replace_list(segments, merged_segment, itr, next_itr);
           } 
           else if (itr == segments.end()) // 最後のセグメントは一個前のものしかマージ対象にならない
           {
             auto prev_itr = std::prev(itr);
-            auto merged_segment = get_merged_segment(prev_itr, itr);
+            auto merged_segment = GetMergedSegment(*prev_itr, *itr);
             replace_list(segments, merged_segment, prev_itr, itr);
           }
           else // その他のセグメントは、セグメント関連度スコアが高いものとマージするようにする
@@ -310,22 +307,22 @@ public:
             if (before > after)
             {
               auto prev_itr = std::prev(itr);
-              auto merged_segment = get_merged_segment(prev_itr, itr);
+              auto merged_segment = GetMergedSegment(*prev_itr, *itr);
               replace_list(segments, merged_segment, prev_itr, itr);
             }
             else
             {
               auto next_itr = std::next(itr);
-              auto merged_segment = get_merged_segment(itr, next_itr);
+              auto merged_segment = GetMergedSegment(*itr, *next_itr);
               replace_list(segments, merged_segment, itr, next_itr);
             }
           }
         }
       }
 
-      spdlog::info("===== Small Segment =====");
-      std::cout << segments << std::endl;
-      spdlog::info("===========================");
+      // spdlog::info("===== Small Segment =====");
+      // std::cout << segments << std::endl;
+      // spdlog::info("===========================");
     }
   };
 }

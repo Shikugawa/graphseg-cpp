@@ -84,9 +84,9 @@ namespace GraphSeg::graph
       BronKerbosch(set<Vertex>(), set<Vertex>(tmp.begin(), tmp.end()), set<Vertex>());
 
 #ifdef DEBUG
-      spdlog::info("===== Retrieved Maximum Cliques =====");
-      std::cout << max_cliques_set << std::endl;
-      spdlog::info("=====================================");
+      // spdlog::info("===== Retrieved Maximum Cliques =====");
+      // std::cout << max_cliques_set << std::endl;
+      // spdlog::info("=====================================");
 #endif
     }
 
