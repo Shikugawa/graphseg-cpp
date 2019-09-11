@@ -9,6 +9,7 @@
 #include <set>
 #include <tuple>
 #include <algorithm>
+#include <bitset>
 // #include <spdlog/spdlog.h>
 
 namespace GraphSeg::internal
@@ -65,18 +66,6 @@ namespace GraphSeg::internal
   }
 
   /// <summary>
-  /// Listコンテナに対して、2つののリスト要素と与えた値を置換する
-  /// TODO: 任意数のリスト要素を置換出来るように拡張したい
-  /// </summary>
-  template <class T, class... It>
-  void replace_list(list<T>& l, T value, It&... rest)
-  {
-    tuple<It...> expand_rest = { rest... };
-    *std::get<0>(expand_rest) = value;
-    l.erase(std::get<1>(expand_rest));
-  }
-
-  /// <summary>
   /// セグメント化可能
   /// </summary>
   template <class T>
@@ -91,7 +80,7 @@ namespace GraphSeg::internal
     /// <summary>
     /// 計算済みセグメント
     /// <summary>
-    list<vector<Vertex>> segments;
+    vector<vector<Vertex>> segments;
 
   public:
     /// <summary>
@@ -122,22 +111,21 @@ private:
     /// </summary>
     bool IsMergable(const vector<Vertex>& sg1, const vector<Vertex>& sg2)
     {
-      return true;
-      // int checker = 1;
-      // vector<Vertex> tmp;
+      int checker = 1;
+      vector<Vertex> tmp;
       
-      // for (const auto& s: sg1)
-      // {
-      //   for(auto& target_max_cliques: Derived().max_cliques_internal[s])
-      //   {
-      //     if (tmp.size() != 0) 
-      //     {
-      //       checker *= 0;
-      //     }
-      //     tmp.clear();
-      //   }  
-      // }
-      // return checker == 0 ? true : false;
+      for (const auto& s: sg1)
+      {
+        for(auto& target_max_cliques: Derived().max_cliques_internal[s])
+        {
+          if (tmp.size() != 0) 
+          {
+            checker *= 0;
+          }
+          tmp.clear();
+        }  
+      }
+      return checker == 0 ? true : false;
     }
 
     vector<Vertex> GetMergedSegment(const vector<Vertex>& first_itr, const vector<Vertex> second_itr)
@@ -147,6 +135,7 @@ private:
       merged_segment.insert(merged_segment.end(), second_itr.begin(), second_itr.end());
       return merged_segment;
     }
+
 public:
     /// <summary>
     /// 最大クリークからセグメントを構築する
@@ -156,48 +145,66 @@ public:
       if (segments.size() == 0) 
         ConstructInitSegment();
 
-      list<vector<Vertex>> next_segment;
+      std::cout << "===== Init Segment =====" << std::endl;
+      for(auto a: segments)
+      {
+        for(auto b: a)
+        {
+          std::cout << b << " ";
+        }
+        std::cout << std::endl;
+      }
+      std::cout << std::endl;
+
+      vector<vector<Vertex>> next_segment;
 
       // マージできるか調べたセグメントを記録しておく。二重でセグメントが調べられるのを防ぐ
-      // TODO：bitsetで管理したい。next_segmentに加えられたものは1とする
-      vector<int> segment_memo(segments.size(), 0);
+      vector<bool> segment_memo(segments.size(), false);
 
-      size_t i = 0;
-      for (auto itr = segments.begin(); itr != segments.end(); ++itr)
+      for (size_t i = 0; i < segments.size() - 1; ++i)
       {
-        if (segment_memo[i] == 1)
+        const auto current_segment = segments[i];
+        const auto adjacent_segment = segments[i+1];
+       
+        if (segment_memo[i] == true)
         {
           continue;
         }
-
-        if (std::next(itr) == segments.end())
-        {
-          segment_memo[i] = 1;
-          next_segment.emplace_back(*itr);
-          continue;
-        }
-
-        auto current_segment = *itr;
-        auto adjacent_segment = *std::next(itr);
 
         if (IsMergable(current_segment, adjacent_segment))
         {
           vector<Vertex> merged_segment = GetMergedSegment(current_segment, adjacent_segment);
           next_segment.emplace_back(merged_segment);
-          segment_memo[i] = 1;
-          segment_memo[i+1] = 1;
+          segment_memo[i] = true;
+          segment_memo[i+1] = true;
         }
         else
         {
           next_segment.emplace_back(current_segment);
-          segment_memo[i] = 1;
+          segment_memo[i] = true;
         }
-
-        ++i;
       }
- 
+
+      if (segment_memo[segments.size() - 1] == false)
+      {
+        const auto segment_last_idx = segments.size() - 1;
+        segment_memo[segment_last_idx] = true;
+        next_segment.emplace_back(segments[segment_last_idx]);
+      }
+
       segments.clear();
       segments = next_segment;
+
+      std::cout << "===== Merged Segment =====" << std::endl;
+      for(auto a: segments)
+      {
+        for(auto b: a)
+        {
+          std::cout << b << " ";
+        }
+        std::cout << std::endl;
+      }
+      std::cout << std::endl;
 
 #ifdef DEBUG
       // spdlog::info("===== Merged Segment =====");
@@ -224,29 +231,38 @@ public:
     /// </summary>
     void ConstructInitSegment()
     {
+      vector<bool> check(Derived().GetGraphSize(), false);
       for (const auto& clique: Derived().max_cliques_set)
       {
-        vector<int> check(Derived().GetGraphSize(), 0); // TODO: ビットで管理したい
-        for (const auto& seg_base: clique)
+        vector<Vertex> single_segment;
+        for (const auto& node: clique)
         {
-          vector<Vertex> segment;
-          
-          if (check[seg_base] == 1) 
-            continue;
-
-          check[seg_base] = 1;
-          segment.emplace_back(seg_base);
-          const auto candidates = Derived().GetNeighbors(seg_base) & clique;
-          
-          for (const auto& c: candidates)
+          if (check[node] == true)
           {
-            segment.emplace_back(c);
-            check[c] = 1;
+            continue;
+          }          
+          check[node] = true;
+          if (single_segment.size() == 0)
+          {
+            single_segment.emplace_back(node);
+          } 
+          else 
+          {
+            if (node - single_segment[single_segment.size() - 1] > 1)
+            {
+              segments.emplace_back(single_segment);
+              single_segment.clear();
+              single_segment.emplace_back(node);
+            }
+            else
+            {
+              single_segment.emplace_back(node);
+            }
           }
-
-          segments.emplace_back(segment);
         }
+        segments.emplace_back(single_segment);
       }
+      std::sort(segments.begin(), segments.end());
 
 #ifdef DEBUG
       // spdlog::info("===== Initial Segment =====");
@@ -260,12 +276,12 @@ public:
     /// </summary>
     void ConstructInvalidSegment(const Embedding& embedding)
     {
-      const auto segment_relatedness = [&embedding, this](auto itr_seg1, auto itr_seg2)
+      const auto segment_relatedness = [&embedding, this](const auto& seg1, const auto& seg2)
       {
         double rel = 1.0;
-        for (const auto& sent1: *itr_seg1)
+        for (const auto& sent1: seg1)
         {
-          for (const auto& sent2: *itr_seg2)
+          for (const auto& sent2: seg2)
           {
             rel *= embedding.GetSimilarity(
               Derived().sentence_idx[sent1], 
@@ -273,52 +289,69 @@ public:
             );
           } 
         }
-        return rel / itr_seg1->size() * itr_seg2->size();
+        return rel / seg1.size() * seg2.size();
       };
 
-      for (auto itr = segments.begin(); itr != segments.end(); ++itr)
+      vector<vector<Vertex>> next_segments;
+      vector<bool> check_segment(segments.size(), false);
+
+      for (size_t i = 0; i < segments.size() - 1; ++i)
       {
-        if (std::next(itr) == segments.end())
+        const auto current_segment = segments[i];
+        const auto next_segment = segments[i+1];
+
+        if (check_segment[i] == true)
         {
-          break;
+          continue;
         }
 
-        if (itr->size() < minimum_segment_size)
+        if (current_segment.size() < minimum_segment_size)
         {
-          if (itr == segments.begin()) // 最初のセグメントは一個後のものしかマージ対象にならない
+          if (i == 0) // 最初のセグメントは一個後のものしかマージ対象にならない
           {
-            auto next_itr = std::next(itr);
-            auto merged_segment = GetMergedSegment(*itr, *next_itr);
-            replace_list(segments, merged_segment, itr, next_itr);
-          } 
-          else if (itr == segments.end()) // 最後のセグメントは一個前のものしかマージ対象にならない
-          {
-            auto prev_itr = std::prev(itr);
-            auto merged_segment = GetMergedSegment(*prev_itr, *itr);
-            replace_list(segments, merged_segment, prev_itr, itr);
+            auto merged_segment = GetMergedSegment(current_segment, next_segment);
+            check_segment[i] = true;
+            check_segment[i+1] = true;
+            next_segments.emplace_back(merged_segment);
           }
           else // その他のセグメントは、セグメント関連度スコアが高いものとマージするようにする
           {
-            auto prev_itr = std::prev(itr);
-            auto next_itr = std::next(itr);
-            auto before = segment_relatedness(itr, prev_itr);
-            auto after = segment_relatedness(itr, next_itr);
+            const auto prev_segment = segments[i-1];
+            auto before = segment_relatedness(current_segment, prev_segment);
+            auto after = segment_relatedness(current_segment, next_segment);
 
             if (before > after)
             {
-              auto prev_itr = std::prev(itr);
-              auto merged_segment = GetMergedSegment(*prev_itr, *itr);
-              replace_list(segments, merged_segment, prev_itr, itr);
+              auto merged_segment = GetMergedSegment(prev_segment, current_segment);
+              check_segment[i-1] = true;
+              check_segment[i] = true;
+              next_segments.emplace_back(merged_segment);
             }
             else
             {
-              auto next_itr = std::next(itr);
-              auto merged_segment = GetMergedSegment(*itr, *next_itr);
-              replace_list(segments, merged_segment, itr, next_itr);
+              auto merged_segment = GetMergedSegment(current_segment, next_segment);
+              check_segment[i] = true;
+              check_segment[i+1] = true;
+              next_segments.emplace_back(merged_segment);
             }
           }
         }
+        else
+        {
+          next_segments.emplace_back(current_segment);
+        }
       }
+
+      // 最後のセグメントがマージされなかった場合余るので追加
+      if (check_segment[segments.size() - 1] == false)
+      {
+        const auto last_segment_idx = segments.size() - 1;
+        check_segment[last_segment_idx] = true;
+        next_segments.emplace_back(segments[last_segment_idx]);
+      }
+
+      segments.clear();
+      segments = next_segments;
 
       // spdlog::info("===== Small Segment =====");
       // std::cout << segments << std::endl;

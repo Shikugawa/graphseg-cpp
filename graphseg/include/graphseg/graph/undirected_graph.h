@@ -27,6 +27,14 @@ namespace GraphSeg::graph
     using Edge = std::pair<Vertex, double>;
     using Base = Segmentable<UndirectedGraph>;
 
+    /// <summary>
+    /// グラフに文章を与えない場合
+    /// </summary>
+    explicit UndirectedGraph(uint32_t _graph_size) : graph_size(_graph_size)
+    {
+      graph.resize(graph_size*graph_size);
+    }
+
     explicit UndirectedGraph() = default;
 
     /// <summary>
@@ -34,21 +42,14 @@ namespace GraphSeg::graph
     /// </summary>
     void SetSentence(const Sentence& s)
     {
-      ++node_idx;
       sentence_idx.emplace_back(s);
       graph.emplace_back(vector<Edge>());
     }
 
     void SetSentence(Sentence&& s)
     {
-      ++node_idx;
       sentence_idx.emplace_back(std::move(s));
       graph.emplace_back(vector<Edge>());
-    }
-
-    void SetArc(int src, int dst, double score)
-    {
-      graph[src].emplace_back(make_pair(dst, score));
     }
 
     /// <summary>
@@ -56,6 +57,7 @@ namespace GraphSeg::graph
     /// </summary>
     void SetEdge(int src, int dst, double score)
     {
+      assert(src < graph_size && dst < graph_size);
       SetArc(src, dst, score);
       SetArc(dst, src, score);
     }
@@ -65,12 +67,12 @@ namespace GraphSeg::graph
     /// </summary>
     inline const Vertex& GetGraphSize() const&
     {
-      return node_idx;
+      return graph_size;
     }
 
     inline Vertex GetGraphSize() &&
     {
-      return std::move(node_idx);
+      return std::move(graph_size);
     }
 
     /// <summary>
@@ -78,7 +80,7 @@ namespace GraphSeg::graph
     /// </summary>
     void SetMaximumClique()
     {
-      vector<Vertex> tmp(node_idx);
+      vector<Vertex> tmp(graph_size);
       int i = -1;
       std::generate(tmp.begin(), tmp.end(), [&i](){ ++i; return i; });
       BronKerbosch(set<Vertex>(), set<Vertex>(tmp.begin(), tmp.end()), set<Vertex>());
@@ -130,6 +132,12 @@ namespace GraphSeg::graph
     }
     
   private:
+    void SetArc(int src, int dst, double score)
+    {
+      auto pair = make_pair(dst, score);
+      graph[src].emplace_back(pair);
+    }
+
     void BronKerbosch(set<Vertex> clique, set<Vertex> candidates, set<Vertex> excluded)
     {
       if (candidates.empty() && excluded.empty())
@@ -162,7 +170,7 @@ namespace GraphSeg::graph
     void ConstuctMaximumCliqueArrayContainer()
     {
       // TODO: 一度Setで最大クリークを構築するが、定数オーダーで最大クリークが欲しいのでベクターに変換しているが、メモリ効率が悪いし、変換処理も無駄
-      max_cliques_internal.resize(node_idx);
+      max_cliques_internal.resize(graph_size);
       for (auto& max_clique: max_cliques_set)
       {
         for (auto& clique_vertex: max_clique)
@@ -205,7 +213,7 @@ namespace GraphSeg::graph
     /// <summary>
     /// 現在のグラフサイズ
     /// </summary>
-    Vertex node_idx = 0;
+    Vertex graph_size = 0;
 
     friend Base;
   };

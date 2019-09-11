@@ -4,6 +4,8 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <list>
+#include <set>
 
 using namespace std;
 using namespace GraphSeg;
@@ -21,6 +23,23 @@ void PrepareSentenceStream()
   s.emplace_back(Sentence("especially, turtle soup is delicious"));
 }
 
+void PrepareSentenceGraph(UndirectedGraph& ud)
+{
+  ud.SetEdge(0, 7, 30);
+  ud.SetEdge(0, 8, 15);
+  ud.SetEdge(7, 8, 15);
+  ud.SetEdge(0, 1, 20);
+  ud.SetEdge(0, 6, 10);
+  ud.SetEdge(1, 5, 5);
+  ud.SetEdge(1, 6, 20);
+  ud.SetEdge(1, 3, 10);
+  ud.SetEdge(6, 3, 15);
+  ud.SetEdge(5, 2, 30);
+  ud.SetEdge(2, 3, 8);
+  ud.SetEdge(3, 4, 20);
+  ud.SetEdge(2, 4, 18);
+}
+
 void PrepareEmbedding()
 {  
   for(auto& _s: s)
@@ -30,25 +49,59 @@ void PrepareEmbedding()
   em.GetWordEmbeddings();
 }
 
+void printSegment(const std::vector<std::vector<unsigned int>>& s)
+{
+  for(const auto& segment: s)
+  {
+    for(const auto& node: segment)
+    {
+      std::cout << node << " ";
+    }
+    std::cout << std::endl;
+  }
+}
+
+void printClique(const std::set<std::set<unsigned int>>& s)
+{
+  for(const auto& segment: s)
+  {
+    for(const auto& node: segment)
+    {
+      std::cout << node << " ";
+    }
+    std::cout << std::endl;
+  }
+}
+
 int main()
 {
   // Set texts
-  double thereshold = 0.05;
+  // double thereshold = 0.05;
 
-  PrepareSentenceStream();
-  PrepareEmbedding();
+  // PrepareSentenceStream();
+  // PrepareEmbedding();
 
-  UndirectedGraph ug;
+  UndirectedGraph ug(9);
+  PrepareSentenceGraph(ug);
 
   GraphContainer ctr(ug);
-  ctr.SetThreshold(thereshold);
-  ctr.SetVertices(s);
-  ctr.SetEdges(em);
+  // ctr.SetThreshold(thereshold);
+  // ctr.SetVertices(s);
+  // ctr.SetEdges(em);
 
   auto& sg = ctr.GetGraph();
 
+  std::cout << "========== Maximum Clique ===========" << std::endl;
   sg.SetMaximumClique();
-  sg.ConstructSegment(em);
+  printClique(sg.GetMaximumClique());
+
+  std::cout << "\n";
+
+  sg.ConstructSegment(em);  
+  auto segments = sg.GetSegment();
+
+  std::cout << "========== Sentence Segments ===========" << std::endl;
+  printSegment(sg.GetSegment());
   
   return 0;
 }
