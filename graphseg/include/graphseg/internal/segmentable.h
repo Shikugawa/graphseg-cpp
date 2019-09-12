@@ -14,7 +14,7 @@
 
 namespace GraphSeg::internal
 {
-  using std::list, std::vector, std::set, std::tuple;
+  using std::list, std::vector, std::set, std::tuple, std::inserter;
 
   using Vertex = unsigned int;
   using VertexSet = set<Vertex>;
@@ -26,29 +26,38 @@ namespace GraphSeg::internal
   >
   {};
 
+  template <typename T, typename = void>
+  struct is_iterable : std::false_type
+  {};
+
   template <typename T>
-  set<T> operator&(const set<T>& v1, const set<T>& v2)
+  struct is_iterable<T, std::void_t<decltype(std::declval<T>().begin()), decltype(std::declval<T>().end())>> : std::true_type
+  {};
+
+  template <typename T, typename = std::enable_if_t<is_iterable<T>::value>*>
+  T operator&(const T& v1, const T& v2)
   {
-    set<T> result;
+    T result;
     set_intersection(v1.begin(), v1.end(), v2.begin(), v2.end(), inserter(result, result.end()));
     return result;
   }
 
-  template <typename T>
-  set<T> operator+(const set<T>& v1, const set<T>& v2)
+  template <typename T, typename = std::enable_if_t<is_iterable<T>::value>*>
+  T operator+(const T& v1, const T& v2)
   {
-    set<T> result;
+    T result;
     set_union(v1.begin(), v1.end(), v2.begin(), v2.end(), inserter(result, result.end()));
     return result;
   }
 
-  template <typename T>
-  set<T> operator-(const set<T>& v1, const set<T>& v2)
+  template <typename T, typename = std::enable_if_t<is_iterable<T>::value>*>
+  T operator-(const T& v1, const T& v2)
   {
     set<T> result;
     set_difference(v1.begin(), v1.end(), v2.begin(), v2.end(), inserter(result, result.end()));
     return result;
   }
+
 
   template <typename T, typename = std::enable_if_t<is_valid_iterable<T>::value>*>
   std::ostream& operator<<(std::ostream& os, const T& segments)
@@ -111,27 +120,29 @@ private:
     /// </summary>
     bool IsMergable(const vector<Vertex>& sg1, const vector<Vertex>& sg2)
     {
-      int checker = 1;
-      vector<Vertex> tmp;
-      
       for (const auto& s: sg1)
       {
-        for(auto& target_max_cliques: Derived().max_cliques_internal[s])
+        for(const auto& maximum_cliques: Derived().max_cliques_internal[s])
         {
-          if (tmp.size() != 0) 
+          const auto& duplicated = sg2 & maximum_cliques;
+          if (duplicated.size() != 0)
           {
-            checker *= 0;
+
+            for(auto p : sg1) std::cout << p << " ";
+            std::cout << " | ";
+            for(auto p : sg2) std::cout << p << " ";
+            std::cout << " => true" << std::endl;
+            return true;
           }
-          tmp.clear();
         }  
       }
-      return checker == 0 ? true : false;
+      return false;
     }
 
     vector<Vertex> GetMergedSegment(const vector<Vertex>& first_itr, const vector<Vertex> second_itr)
     {
       vector<Vertex> merged_segment = first_itr;
-      merged_segment.resize(first_itr.size() + second_itr.size());
+      merged_segment.resize(first_itr.size() + second_itr.size() - 1);
       merged_segment.insert(merged_segment.end(), second_itr.begin(), second_itr.end());
       return merged_segment;
     }
@@ -156,16 +167,15 @@ public:
       }
       std::cout << std::endl;
 
-      vector<vector<Vertex>> next_segment;
-
       // マージできるか調べたセグメントを記録しておく。二重でセグメントが調べられるのを防ぐ
       vector<bool> segment_memo(segments.size(), false);
+      vector<vector<Vertex>> next_segment;
 
       for (size_t i = 0; i < segments.size() - 1; ++i)
       {
         const auto current_segment = segments[i];
         const auto adjacent_segment = segments[i+1];
-       
+        
         if (segment_memo[i] == true)
         {
           continue;
@@ -174,9 +184,18 @@ public:
         if (IsMergable(current_segment, adjacent_segment))
         {
           vector<Vertex> merged_segment = GetMergedSegment(current_segment, adjacent_segment);
-          next_segment.emplace_back(merged_segment);
           segment_memo[i] = true;
           segment_memo[i+1] = true;
+
+          // セグメントを先読みしてマージしきれるならマージする
+          for(size_t j = 2; IsMergable(merged_segment, segments[i+j]) && i+j < segments.size(); ++j)
+          {
+            const auto offspring_segment = segments[i+j];
+            merged_segment = GetMergedSegment(merged_segment, offspring_segment);
+            segment_memo[i+j] = true;
+          }
+
+          next_segment.emplace_back(merged_segment);
         }
         else
         {
@@ -194,7 +213,7 @@ public:
 
       segments.clear();
       segments = next_segment;
-
+      
       std::cout << "===== Merged Segment =====" << std::endl;
       for(auto a: segments)
       {

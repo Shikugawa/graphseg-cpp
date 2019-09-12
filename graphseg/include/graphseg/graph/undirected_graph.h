@@ -84,7 +84,7 @@ namespace GraphSeg::graph
       int i = -1;
       std::generate(tmp.begin(), tmp.end(), [&i](){ ++i; return i; });
       BronKerbosch(set<Vertex>(), set<Vertex>(tmp.begin(), tmp.end()), set<Vertex>());
-
+      ConstructMaximumCliqueArrayContainer();
 #ifdef DEBUG
       // spdlog::info("===== Retrieved Maximum Cliques =====");
       // std::cout << max_cliques_set << std::endl;
@@ -167,7 +167,7 @@ namespace GraphSeg::graph
       }      
     }
 
-    void ConstuctMaximumCliqueArrayContainer()
+    void ConstructMaximumCliqueArrayContainer()
     {
       // TODO: 一度Setで最大クリークを構築するが、定数オーダーで最大クリークが欲しいのでベクターに変換しているが、メモリ効率が悪いし、変換処理も無駄
       max_cliques_internal.resize(graph_size);
@@ -175,7 +175,6 @@ namespace GraphSeg::graph
       {
         for (auto& clique_vertex: max_clique)
         {
-          std::cout << clique_vertex << std::endl;
           max_cliques_internal[clique_vertex].emplace_back(
             vector<Vertex>(max_clique.begin(), max_clique.end())
           );
