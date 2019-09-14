@@ -1,5 +1,5 @@
-#ifndef GRAPHSEG_INTERNAL_GRAPHSEG_GRAPH_CONTAINER_H
-#define GRAPHSEG_INTERNAL_GRAPHSEG_GRAPH_CONTAINER_H
+#ifndef GRAPHSEG_INTERNAL_GRAPHSEG_SEGMENTATION_CONTAINER_H
+#define GRAPHSEG_INTERNAL_GRAPHSEG_SEGMENTATION_CONTAINER_H
 
 #include "graphseg/graph/undirected_graph.h"
 #include "graphseg/embedding.h"
@@ -10,13 +10,14 @@ namespace GraphSeg
   using namespace graph;
   using std::vector;
 
-  class GraphContainer
+  template <class Graph>
+  class SegmentationContainer
   {
   public:
-    GraphContainer(UndirectedGraph&& ud) : graph(std::move(ud))
+    SegmentationContainer(Graph&& ud) : graph(std::move(ud))
     {}
 
-    GraphContainer(const UndirectedGraph& ud) : graph(std::move(ud))
+    SegmentationContainer(const Graph& ud) : graph(ud)
     {}
 
     /// <summary>
@@ -35,12 +36,12 @@ namespace GraphSeg
     /// <summary>
     /// グラフを取得する
     /// </summary>
-    inline UndirectedGraph& GetGraph() &
+    inline Graph& GetGraph() &
     { 
       return graph; 
     }
 
-    inline UndirectedGraph&& GetGraph() &&
+    inline Graph&& GetGraph() &&
     {
       return std::move(graph);
     }

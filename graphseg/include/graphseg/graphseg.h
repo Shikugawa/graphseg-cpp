@@ -3,7 +3,7 @@
 
 #include "graphseg/graph/graph_formatter.h"
 #include "graphseg/graph/undirected_graph.h"
-#include "graphseg/graph_container.h"
+#include "graphseg/segmentation_container.h"
 #include "graphseg/embedding.h"
 #include "graphseg/sentence.h"
 

@@ -49,59 +49,25 @@ void PrepareEmbedding()
   em.GetWordEmbeddings();
 }
 
-void printSegment(const std::vector<std::vector<unsigned int>>& s)
-{
-  for(const auto& segment: s)
-  {
-    for(const auto& node: segment)
-    {
-      std::cout << node << " ";
-    }
-    std::cout << std::endl;
-  }
-}
-
-void printClique(const std::set<std::set<unsigned int>>& s)
-{
-  for(const auto& segment: s)
-  {
-    for(const auto& node: segment)
-    {
-      std::cout << node << " ";
-    }
-    std::cout << std::endl;
-  }
-}
-
 int main()
 {
   // Set texts
   // double thereshold = 0.05;
-
   // PrepareSentenceStream();
   // PrepareEmbedding();
 
   UndirectedGraph ug(9);
   PrepareSentenceGraph(ug);
+  SegmentationContainer<decltype(ug)> ctr(ug);
 
-  GraphContainer ctr(ug);
   // ctr.SetThreshold(thereshold);
   // ctr.SetVertices(s);
   // ctr.SetEdges(em);
 
   auto& sg = ctr.GetGraph();
-
-  std::cout << "========== Maximum Clique ===========" << std::endl;
   sg.SetMaximumClique();
-  printClique(sg.GetMaximumClique());
-
-  std::cout << "\n";
-
   sg.ConstructSegment(em);  
   auto segments = sg.GetSegment();
 
-  std::cout << "========== Sentence Segments ===========" << std::endl;
-  printSegment(sg.GetSegment());
-  
   return 0;
 }

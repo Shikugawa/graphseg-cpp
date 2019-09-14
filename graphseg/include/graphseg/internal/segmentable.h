@@ -10,7 +10,10 @@
 #include <tuple>
 #include <algorithm>
 #include <bitset>
-// #include <spdlog/spdlog.h>
+
+#ifdef DEBUG
+#include <spdlog/spdlog.h>
+#endif
 
 namespace GraphSeg::internal
 {
@@ -21,7 +24,7 @@ namespace GraphSeg::internal
   
   template <typename T>
   struct is_valid_iterable : std::disjunction<
-    std::is_same<T, list<vector<Vertex>>>,
+    std::is_same<T, vector<vector<Vertex>>>,
     std::is_same<T, set<VertexSet>>
   >
   {};
@@ -70,7 +73,7 @@ namespace GraphSeg::internal
         vertex_node += std::to_string(segment_vertex);
         vertex_node += " ";
       }
-      // spdlog::info(vertex_node);
+      spdlog::info(vertex_node);
     }
   }
 
@@ -89,7 +92,7 @@ namespace GraphSeg::internal
     /// <summary>
     /// 計算済みセグメント
     /// <summary>
-    vector<vector<Vertex>> segments;
+    mutable vector<vector<Vertex>> segments;
 
   public:
     /// <summary>
@@ -127,11 +130,6 @@ private:
           const auto& duplicated = sg2 & maximum_cliques;
           if (duplicated.size() != 0)
           {
-
-            for(auto p : sg1) std::cout << p << " ";
-            std::cout << " | ";
-            for(auto p : sg2) std::cout << p << " ";
-            std::cout << " => true" << std::endl;
             return true;
           }
         }  
@@ -153,20 +151,11 @@ public:
     /// </summary>
     void ConstructSegment(const Embedding& embedding)
     {
-      if (segments.size() == 0) 
-        ConstructInitSegment();
-
-      std::cout << "===== Init Segment =====" << std::endl;
-      for(auto a: segments)
+      if (segments.size() == 0)
       {
-        for(auto b: a)
-        {
-          std::cout << b << " ";
-        }
-        std::cout << std::endl;
+        ConstructInitSegment();
       }
-      std::cout << std::endl;
-
+      
       // マージできるか調べたセグメントを記録しておく。二重でセグメントが調べられるのを防ぐ
       vector<bool> segment_memo(segments.size(), false);
       vector<vector<Vertex>> next_segment;
@@ -175,7 +164,7 @@ public:
       {
         const auto current_segment = segments[i];
         const auto adjacent_segment = segments[i+1];
-        
+
         if (segment_memo[i] == true)
         {
           continue;
@@ -213,31 +202,20 @@ public:
 
       segments.clear();
       segments = next_segment;
-      
-      std::cout << "===== Merged Segment =====" << std::endl;
-      for(auto a: segments)
-      {
-        for(auto b: a)
-        {
-          std::cout << b << " ";
-        }
-        std::cout << std::endl;
-      }
-      std::cout << std::endl;
-
+     
 #ifdef DEBUG
-      // spdlog::info("===== Merged Segment =====");
+      std::cout << "===== Merged Segment =====" << std::endl; 
       // std::cout << segments << std::endl;
-      // spdlog::info("===========================");
+      // std::cout << "===========================" << std::endl;
 #endif
 
       ConstructInvalidSegment(embedding);
     }
   
   private:
-    T& Derived() &
+    const T& Derived() const&
     {
-      return static_cast<T&>(*this);
+      return static_cast<const T&>(*this);
     }
 
     T&& Derived() &&
@@ -272,6 +250,7 @@ public:
               segments.emplace_back(single_segment);
               single_segment.clear();
               single_segment.emplace_back(node);
+              continue;
             }
             else
             {
@@ -279,14 +258,18 @@ public:
             }
           }
         }
+        if (single_segment.size() == 0)
+        {
+          continue;
+        }
         segments.emplace_back(single_segment);
       }
       std::sort(segments.begin(), segments.end());
 
 #ifdef DEBUG
-      // spdlog::info("===== Initial Segment =====");
+      std::cout << "===== Initial Segment =====" << std::endl;
       // std::cout << segments << std::endl;
-      // spdlog::info("===========================");
+      // std::cout << "===========================" << std::endl;
 #endif
     }
 
@@ -358,6 +341,7 @@ public:
         else
         {
           next_segments.emplace_back(current_segment);
+          check_segment[i] = true;
         }
       }
 
@@ -372,9 +356,11 @@ public:
       segments.clear();
       segments = next_segments;
 
-      // spdlog::info("===== Small Segment =====");
+#ifdef DEBUG
+      std::cout << "===== Small Segment =====" << std::endl;
       // std::cout << segments << std::endl;
-      // spdlog::info("===========================");
+      // std::cout << "===========================" << std::endl;
+#endif
     }
   };
 }
