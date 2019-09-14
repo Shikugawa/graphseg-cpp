@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
 namespace GraphSeg
 {
@@ -14,16 +15,18 @@ namespace GraphSeg
     using iterator = vector<string>::iterator;
     using const_iterator = vector<string>::const_iterator;
 
-    const char delim = ' ';
+    vector<char> deliminator_set;
 
   public:
     Sentence(string&& s) : sentence(std::move(s))
     {
+      deliminator_set.emplace_back(' ');
       CreateTerm();
     }
 
     Sentence(const string& s) : sentence(s)
     {
+      deliminator_set.emplace_back(' ');
       CreateTerm();
     }
 
@@ -48,7 +51,7 @@ namespace GraphSeg
     }
 
     /// <summary>
-    /// 文章中の全タームを取得する
+    /// Get all term retrieved from sentences
     /// </summary>
     const vector<string>& GetTerms() const& 
     { 
@@ -61,7 +64,7 @@ namespace GraphSeg
     }
 
     /// <summary>
-    /// 文章の全ターム数を取得する
+    /// Get term size
     /// </summary>
     size_t GetSize()
     {
@@ -69,23 +72,39 @@ namespace GraphSeg
     }
 
     /// <summary>
-    /// 文章の内容を取得する
+    /// Get all sentence (rvalue & lvalue)
     /// </summary>
     const string& GetText() const& 
     { 
       return sentence; 
     }
 
-    /// <summary>
-    /// 文章の内容を取得する
-    /// </summary>
     string GetText() &&
     { 
       return std::move(sentence); 
     }
 
     /// <summary>
-    /// タームを取得する
+    /// Add new deliminator
+    /// </summary>
+    void ApplyDeliminator(char ch) 
+    {
+      deliminator_set.emplace_back(ch);
+    }
+
+    /// <summary>
+    /// Destroy deliminator
+    /// <summary>
+    void DestoryDeliminator(char ch)
+    {
+      if (std::find(deliminator_set.begin(), deliminator_set.end(), ch) != deliminator_set.end())
+      {
+        std::remove_if(deliminator_set.begin(), deliminator_set.end(), [&ch](auto delim){ return delim == ch; });
+      }
+    }
+
+    /// <summary>
+    /// Operator : Get term with index
     /// </summary>
     const string& operator[](size_t idx)
     { 
@@ -98,7 +117,7 @@ namespace GraphSeg
       string item;
       for (auto itr = sentence.begin(); itr != sentence.end(); ++itr)
       {
-        if (*itr == delim)
+        if (std::find(deliminator_set.begin(), deliminator_set.end(), *itr) != deliminator_set.end())
         {
           terms.emplace_back(item);
           item.clear();

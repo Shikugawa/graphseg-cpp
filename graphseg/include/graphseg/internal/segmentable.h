@@ -21,13 +21,6 @@ namespace GraphSeg::internal
 
   using Vertex = unsigned int;
   using VertexSet = set<Vertex>;
-  
-  template <typename T>
-  struct is_valid_iterable : std::disjunction<
-    std::is_same<T, vector<vector<Vertex>>>,
-    std::is_same<T, set<VertexSet>>
-  >
-  {};
 
   template <typename T, typename = void>
   struct is_iterable : std::false_type
@@ -37,6 +30,14 @@ namespace GraphSeg::internal
   struct is_iterable<T, std::void_t<decltype(std::declval<T>().begin()), decltype(std::declval<T>().end())>> : std::true_type
   {};
 
+  template <typename T, bool = is_iterable<typename T::reference>::value>
+  struct is_valid_iterable : std::false_type
+  {};
+
+  template <typename T>
+  struct is_valid_iterable<T, true> : std::true_type
+  {};
+  
   template <typename T, typename = std::enable_if_t<is_iterable<T>::value>*>
   T operator&(const T& v1, const T& v2)
   {
@@ -73,13 +74,11 @@ namespace GraphSeg::internal
         vertex_node += std::to_string(segment_vertex);
         vertex_node += " ";
       }
-      spdlog::info(vertex_node);
+      os << vertex_node << std::endl;
     }
+    return os;
   }
 
-  /// <summary>
-  /// セグメント化可能
-  /// </summary>
   template <class T>
   class Segmentable
   {
@@ -205,8 +204,8 @@ public:
      
 #ifdef DEBUG
       std::cout << "===== Merged Segment =====" << std::endl; 
-      // std::cout << segments << std::endl;
-      // std::cout << "===========================" << std::endl;
+      std::cout << segments;
+      std::cout << "===========================" << std::endl;
 #endif
 
       ConstructInvalidSegment(embedding);
@@ -268,8 +267,8 @@ public:
 
 #ifdef DEBUG
       std::cout << "===== Initial Segment =====" << std::endl;
-      // std::cout << segments << std::endl;
-      // std::cout << "===========================" << std::endl;
+      std::cout << segments;
+      std::cout << "===========================" << std::endl;
 #endif
     }
 
@@ -358,8 +357,8 @@ public:
 
 #ifdef DEBUG
       std::cout << "===== Small Segment =====" << std::endl;
-      // std::cout << segments << std::endl;
-      // std::cout << "===========================" << std::endl;
+      std::cout << segments;
+      std::cout << "===========================" << std::endl;
 #endif
     }
   };

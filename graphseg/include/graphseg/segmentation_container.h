@@ -21,7 +21,7 @@ namespace GraphSeg
     {}
 
     /// <summary>
-    /// エッジ重みの閾値を設定（右辺値&左辺値）
+    /// Set edge weight threshold in graph. If edge weight is higher than it, both vertex are connected each other (lvalue & rvalue)
     /// </summary>
     inline void SetThreshold(const double& thd) noexcept 
     { 
@@ -34,7 +34,7 @@ namespace GraphSeg
     }
 
     /// <summary>
-    /// グラフを取得する
+    /// Get graph (lvalue & rvalue)
     /// </summary>
     inline Graph& GetGraph() &
     { 
@@ -47,7 +47,7 @@ namespace GraphSeg
     }
 
     /// <summary>
-    /// 与えられた文章をグラフの頂点に設定する
+    /// Set sentence to graph vertex (lvalue & rvalue)
     /// </summary>
     void SetVertices(const vector<Sentence>& ss)
     {
@@ -68,7 +68,7 @@ namespace GraphSeg
     }
 
     /// <summary>
-    /// 文章の類似度を計算して重みを設定する
+    /// Set weight calclated from sentence similarity by word embeddings
     /// </summary>
     void SetEdges(Embedding& em)
     {

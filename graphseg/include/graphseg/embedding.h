@@ -35,7 +35,7 @@ namespace GraphSeg
     Embedding& operator=(const Embedding&) = delete;
 
     /// <summary>
-    /// センテンスの単語から埋め込みを得る際の前処理
+    /// Preprocess to retrieve embeddings from terms in sentences
     /// </summary>
     void AddSentenceWords(Sentence& s)
     {
@@ -70,7 +70,7 @@ namespace GraphSeg
     }
 
     /// <summary>
-    /// 全ての単語埋め込みを得る
+    /// Get all word embedding
     /// </summary>
     void GetWordEmbeddings()
     {
@@ -96,7 +96,7 @@ namespace GraphSeg
     }
 
     /// <summary>
-    /// 単語ベクトルの取得
+    /// Get word vector
     /// </summary>
     inline const WordEmbedding& GetVector(const string& term) const
     { 
@@ -104,8 +104,7 @@ namespace GraphSeg
     }
     
     /// <summary>
-    /// コサイン類似度に基づくセンテンス間の類似度を得る
-    /// 負数で小さいほど類似度が高いので符号を入れ替える
+    /// Get similarity based on Cosine Similarity between sentences 
     /// </summary>
     double GetSimilarity(const Sentence& sg1, const Sentence& sg2) const&
     {
@@ -182,11 +181,9 @@ namespace GraphSeg
       words.insert({term, make_tuple(wm, 1)});
     }
 
-    /// <summary>
-    /// 零ベクトルならStop Wordであるとみなす
-    /// </summary>
     bool IsStopWord(const array<double, DIM>& d) const
     {
+      // if d is zero-vector, reguard this term as stop-word
       for(size_t i = 0; i < DIM; ++i)
       {
         if (d[i] != 0.0) return false;
