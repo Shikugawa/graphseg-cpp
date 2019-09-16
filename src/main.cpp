@@ -6,13 +6,19 @@
 #include <string>
 #include <list>
 #include <set>
+#include <mecab.h>
 
 using namespace std;
 using namespace GraphSeg;
 using namespace GraphSeg::graph;
 
-vector<Sentence> s;
+vector<Sentence<>> s;
 Embedding em;
+
+// class MeCab
+// {
+
+// };
 
 void PrepareSentenceStream()
 {
@@ -51,23 +57,28 @@ void PrepareEmbedding()
 
 int main()
 {
-  // Set texts
-  // double thereshold = 0.05;
-  // PrepareSentenceStream();
-  // PrepareEmbedding();
+  Lang lang = Lang::JP;
 
-  UndirectedGraph ug(9);
-  PrepareSentenceGraph(ug);
-  SegmentationContainer<decltype(ug)> ctr(ug);
+  s.emplace_back("太郎は花子にプレゼントを渡した。");
+  s.emplace_back("プレゼントの中身は彼女のお気に入りの小説だった。");
+
+  // Set texts
+  double thereshold = 0.05;
+  // PrepareSentenceStream();
+  PrepareEmbedding();
+
+  // UndirectedGraph ug(9);
+  // PrepareSentenceGraph(ug);
+  // SegmentationContainer<decltype(ug)> ctr(ug);
 
   // ctr.SetThreshold(thereshold);
   // ctr.SetVertices(s);
   // ctr.SetEdges(em);
 
-  auto& sg = ctr.GetGraph();
-  sg.SetMaximumClique();
-  sg.ConstructSegment(em);  
-  auto segments = sg.GetSegment();
+  // auto& sg = ctr.GetGraph();
+  // sg.SetMaximumClique();
+  // sg.ConstructSegment(em);  
+  // auto segments = sg.GetSegment();
 
   return 0;
 }

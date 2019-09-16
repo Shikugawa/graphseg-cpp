@@ -6,5 +6,6 @@
 #include "graphseg/segmentation_container.h"
 #include "graphseg/embedding.h"
 #include "graphseg/sentence.h"
+#include "graphseg/lang.h"
 
 #endif

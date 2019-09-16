@@ -1,15 +1,20 @@
 #ifndef GRAPHSEG_CPP_GRAPHSEG_SENTENCE_H
 #define GRAPHSEG_CPP_GRAPHSEG_SENTENCE_H
 
+#include <type_traits>
 #include <string>
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <mecab.h>
+#include <graphseg/lang.h>
+#include <graphseg/internal/utils/mecab_helper.h>
 
 namespace GraphSeg
 {
-  using std::string, std::vector;
+  using std::string, std::vector, std::is_same_v;
 
+  template <Lang LangType = Lang::EN>
   class Sentence
   {
     using iterator = vector<string>::iterator;
@@ -18,15 +23,17 @@ namespace GraphSeg
     vector<char> deliminator_set;
 
   public:
-    Sentence(string&& s) : sentence(std::move(s))
+    Sentence(string&& s)
     {
       deliminator_set.emplace_back(' ');
+      sentence = I18NFactory<LangType>::SentenceTagger()(s);
       CreateTerm();
     }
 
-    Sentence(const string& s) : sentence(s)
+    Sentence(const string& s)
     {
       deliminator_set.emplace_back(' ');
+      sentence = I18NFactory<LangType>::SentenceTagger()(std::move(s));
       CreateTerm();
     }
 
@@ -54,7 +61,7 @@ namespace GraphSeg
     /// Get all term retrieved from sentences
     /// </summary>
     const vector<string>& GetTerms() const& 
-    { 
+    {
       return terms; 
     }
 

@@ -45,5 +45,5 @@ add_subdirectory(graphseg)
 add_subdirectory(src)
 
 # gtest
-enable_testing()
-add_subdirectory(test)
+# enable_testing()
+# add_subdirectory(test)

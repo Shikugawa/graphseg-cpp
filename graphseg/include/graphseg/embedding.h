@@ -1,6 +1,7 @@
 #ifndef GRAPHSEG_CPP_GRAPHSEG_EMBEDDING_H
 #define GRAPHSEG_CPP_GRAPHSEG_EMBEDDING_H
 
+#include "graphseg/lang.h"
 #include "graphseg/sentence.h"
 #include "graphseg/internal/utils/exec.h"
 #include "graphseg/internal/frequency.h"
@@ -21,8 +22,8 @@ namespace GraphSeg
         std::pow, std::tuple, std::get, std::make_tuple, std::unique_ptr;
 
   static constexpr auto DIM = 300;
-  const string COMMAND_VECTORIZER = home + "/.pyenv/shims/python" + " " + home + "/graphseg-cpp/script/vectorizer.py";
 
+  template <Lang LangType = Lang::EN>
   class Embedding
   {
   public:
@@ -76,7 +77,7 @@ namespace GraphSeg
     {
       int code;
       const string term_stream = GetTermStream();
-      const string cmd = "echo " +  term_stream + " | " + COMMAND_VECTORIZER;
+      const string cmd = "echo " +  term_stream + " | " + I18NFactory<LangType>::CommandBaseExtractor() + "/vectorizer.py";
       auto result = utils::exec(cmd.c_str(), code);
       Document doc;
       const auto parse_result = doc.Parse(result.c_str()).HasParseError();

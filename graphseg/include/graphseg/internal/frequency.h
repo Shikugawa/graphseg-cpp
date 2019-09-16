@@ -1,7 +1,8 @@
 #ifndef GRAPHSEG_CPP_GRAPHSEG_INTERNAL_FREQUENCY_H
 #define GRAPHSEG_CPP_GRAPHSEG_INTERNAL_FREQUENCY_H
 
-#include "utils/exec.h"
+#include "graphseg/internal/utils/exec.h"
+#include "graphseg/lang.h"
 
 #include <string>
 #include <utility>
@@ -16,9 +17,7 @@ namespace GraphSeg::internal
   using std::unordered_map, std::string, std::enable_if_t, std::is_same_v;
   using namespace rapidjson;
 
-  const string home = getenv("HOME");
-  const string COMMAND_FREQUENCY = home + "/.pyenv/shims/python" + " " + home + "/graphseg-cpp/script/frequency.py";
-
+  template <Lang LangType = Lang::EN>
   class Frequency
   {
   public:
@@ -65,7 +64,7 @@ namespace GraphSeg::internal
     void AddFrequency(T&& stream)
     {
       int code;
-      const string cmd = "echo " + stream + " | " + COMMAND_FREQUENCY;
+      const string cmd = I18NFactory<LangType>::CommandBaseExtractor() + "/frequency.py";
       auto result = utils::exec(cmd.c_str(), code);
       Document doc;
       const auto parse_result = doc.Parse(result.c_str()).HasParseError();
