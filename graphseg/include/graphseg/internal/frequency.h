@@ -31,10 +31,6 @@ namespace GraphSeg::internal
       AddFrequency(std::forward<string>(stream));
     }
 
-    Frequency(const Frequency&) = delete;
-
-    Frequency& operator=(const Frequency&) = delete;
-
     /// <summary>
     /// 単語の頻度を得る
     /// </summary>
@@ -64,7 +60,7 @@ namespace GraphSeg::internal
     void AddFrequency(T&& stream)
     {
       int code;
-      const string cmd = I18NFactory<LangType>::CommandBaseExtractor() + "/frequency.py";
+      const string cmd = "echo " + stream + " | " + I18NFactory<LangType>::CommandBaseExtractor() + "/frequency.py";
       auto result = utils::exec(cmd.c_str(), code);
       Document doc;
       const auto parse_result = doc.Parse(result.c_str()).HasParseError();

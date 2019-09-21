@@ -29,10 +29,6 @@ namespace GraphSeg
     using WordEmbedding = array<double, VectorDim>;
 
     Embedding() = default;
-    
-    Embedding(const Embedding&) = delete;
-
-    Embedding& operator=(const Embedding&) = delete;
 
     /// <summary>
     /// Preprocess to retrieve embeddings from terms in sentences
@@ -191,7 +187,7 @@ namespace GraphSeg
       return true;
     }
 
-    unique_ptr<Frequency<LangType>> frequency;
+    std::shared_ptr<Frequency<LangType>> frequency;
     unsigned int termLength;
     unordered_map<string, tuple<WordEmbedding, unsigned int>> words;
   };

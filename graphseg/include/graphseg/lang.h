@@ -27,7 +27,7 @@ namespace GraphSeg
         return [](const std::string& s) -> const std::string {
           const auto tagger = MeCab::createTagger("");
           auto parsed_sentence = tagger->parse(s.c_str());
-          return GraphSeg::internal::utils::extractTerm(parsed_sentence);
+          return GraphSeg::internal::utils::ExtractTerm(parsed_sentence);
         };
       }
       else

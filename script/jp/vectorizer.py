@@ -38,4 +38,4 @@ for word in line.split(" "):
     if len(vector) != 0:      
         out[word] = vector
 
-print(json.dumps(out, cls=MyEncoder)["日本語"])
+print(json.dumps(out, cls=MyEncoder))

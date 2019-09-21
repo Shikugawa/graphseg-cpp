@@ -64,24 +64,16 @@ int main()
   // Set texts
   double thereshold = 0.05;
   PrepareSentenceJP();
+  PrepareEmbedding();
 
-  for (auto a: s)
-  {
-    for (auto t: a.GetTerms())
-    {
-      std::cout << t << " ";
-    }
-    std::cout << std::endl;
-  }
-  // PrepareEmbedding();
+  UndirectedGraph<ltype> ug(9);
+  PrepareSentenceGraph(ug);
 
-  // UndirectedGraph ug(9);
-  // PrepareSentenceGraph(ug);
-  // SegmentationContainer<decltype(ug)> ctr(ug);
+  SegmentationContainer<UndirectedGraph<ltype>, VectorDim, ltype> ctr(ug, em);
 
-  // ctr.SetThreshold(thereshold);
-  // ctr.SetVertices(s);
-  // ctr.SetEdges(em);
+  ctr.SetThreshold(thereshold);
+  ctr.SetVertices(s);
+  ctr.SetEdges(); // Seegmentaion Fault: GetSimilarityで配列外参照してそう
 
   // auto& sg = ctr.GetGraph();
   // sg.SetMaximumClique();

@@ -105,8 +105,7 @@ namespace GraphSeg
     /// <summary>
     /// Set weight calclated from sentence similarity by word embeddings
     /// </summary>
-    template <class T>
-    void SetEdges(T& em)
+    void SetEdges()
     {
       const auto graph_size = graph.GetGraphSize();
       assert(graph_size > 1);
@@ -116,7 +115,7 @@ namespace GraphSeg
         for (int j = 0; j < graph_size; ++j)
         {
           if ((memo[i][j] == 1 && memo[j][i] == 1) || i == j) continue;
-          const auto similarity = em.GetSimilarity(sentences[i], sentences[j]);
+          const auto similarity = embedding.GetSimilarity(sentences[i], sentences[j]);
           if (similarity > thereshold)
           {
             graph.SetEdge(i, j, similarity);

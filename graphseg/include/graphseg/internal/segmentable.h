@@ -44,6 +44,8 @@ namespace GraphSeg::internal
     Graph graph;
 
   public:
+    Segmentable() = default;
+
     Segmentable(const Graph& g) : graph(g)
     {}
 
@@ -53,6 +55,7 @@ namespace GraphSeg::internal
     /// 最大クリークに含まれているということは、そのノードで示されているトピックがセカンドセグメントで言及されている可能性があるという事である。
     /// </summary>
     bool IsMergable(const vector<Vertex>& sg1, const vector<Vertex>& sg2)
+
     {
       for (const auto& s: sg1)
       {
