@@ -2,6 +2,7 @@
 #define GRAPHSEG_CPP_GRAPHSEG_SEGMENTABLE_H
 
 #include "graphseg/embedding.h"
+#include "graphseg/segmentation_container.h"
 #include "graphseg/lang.h"
 
 #include <type_traits>
@@ -18,72 +19,14 @@
 
 namespace GraphSeg::internal
 {
-  using std::list, std::vector, std::set, std::tuple, std::inserter;
+  using std::list, std::vector, std::tuple, std::inserter;
 
   using Vertex = unsigned int;
-  using VertexSet = set<Vertex>;
 
-  template <typename T, typename = void>
-  struct is_iterable : std::false_type
-  {};
-
-  template <typename T>
-  struct is_iterable<T, std::void_t<decltype(std::declval<T>().begin()), decltype(std::declval<T>().end())>> : std::true_type
-  {};
-
-  template <typename T, bool = is_iterable<typename T::reference>::value>
-  struct is_valid_iterable : std::false_type
-  {};
-
-  template <typename T>
-  struct is_valid_iterable<T, true> : std::true_type
-  {};
-  
-  template <typename T, typename = std::enable_if_t<is_iterable<T>::value>*>
-  T operator&(const T& v1, const T& v2)
-  {
-    T result;
-    set_intersection(v1.begin(), v1.end(), v2.begin(), v2.end(), inserter(result, result.end()));
-    return result;
-  }
-
-  template <typename T, typename = std::enable_if_t<is_iterable<T>::value>*>
-  T operator+(const T& v1, const T& v2)
-  {
-    T result;
-    set_union(v1.begin(), v1.end(), v2.begin(), v2.end(), inserter(result, result.end()));
-    return result;
-  }
-
-  template <typename T, typename = std::enable_if_t<is_iterable<T>::value>*>
-  T operator-(const T& v1, const T& v2)
-  {
-    set<T> result;
-    set_difference(v1.begin(), v1.end(), v2.begin(), v2.end(), inserter(result, result.end()));
-    return result;
-  }
-
-
-  template <typename T, typename = std::enable_if_t<is_valid_iterable<T>::value>*>
-  std::ostream& operator<<(std::ostream& os, const T& segments)
-  {
-    for (const auto& segment : segments)
-    {
-      std::string vertex_node;
-      for (const auto& segment_vertex : segment)
-      {
-        vertex_node += std::to_string(segment_vertex);
-        vertex_node += " ";
-      }
-      os << vertex_node << std::endl;
-    }
-    return os;
-  }
-
-  template <class T, Lang LangType = Lang::EN>
+  template <class Graph, int VectorDim, Lang LangType = Lang::EN>
   class Segmentable
   {
-  private:
+  public:
     /// <summary>
     /// 最小セグメントサイズ
     /// </summary>
@@ -94,29 +37,17 @@ namespace GraphSeg::internal
     /// <summary>
     mutable vector<vector<Vertex>> segments;
 
+  private:
+    /// <summary>
+    /// 対象グラフ
+    /// </summary>
+    Graph graph;
+
   public:
-    /// <summary>
-    /// 最小セグメントサイズの左辺値参照を取得する
-    /// </summary>
-    size_t& GetMinimumSegmentSize(size_t s)
-    {
-      return minimum_segment_size;
-    }
+    Segmentable(const Graph& g) : graph(g)
+    {}
 
-    /// <summary>
-    /// セグメントを返す
-    /// </summary>
-    inline const auto& GetSegment() const&
-    {
-      return segments;
-    }
-
-    inline auto GetSegment() &&
-    {
-      return std::move(segments);
-    }
-
-private:
+  private:
     /// <summary>
     /// ファーストセグメント中のあるノードを含む最大クリークが、セカンドセグメントに含まれている場合はマージしても良いとする。
     /// 最大クリークに含まれているということは、そのノードで示されているトピックがセカンドセグメントで言及されている可能性があるという事である。
@@ -125,7 +56,7 @@ private:
     {
       for (const auto& s: sg1)
       {
-        for(const auto& maximum_cliques: Derived().max_cliques_internal[s])
+        for(const auto& maximum_cliques: graph.max_cliques_internal[s])
         {
           const auto& duplicated = sg2 & maximum_cliques;
           if (duplicated.size() != 0)
@@ -145,11 +76,11 @@ private:
       return merged_segment;
     }
 
-public:
+  public:
     /// <summary>
     /// 最大クリークからセグメントを構築する
     /// </summary>
-    void ConstructSegment(const Embedding<LangType>& embedding)
+    void ConstructSegment(const Embedding<VectorDim, LangType>& embedding)
     {
       if (segments.size() == 0)
       {
@@ -213,23 +144,13 @@ public:
     }
   
   private:
-    const T& Derived() const&
-    {
-      return static_cast<const T&>(*this);
-    }
-
-    T&& Derived() &&
-    {
-      return static_cast<T&&>(*this);
-    }
-
     /// <summary>
     /// 初期セグメントの構築
     /// </summary>
     void ConstructInitSegment()
     {
-      vector<bool> check(Derived().GetGraphSize(), false);
-      for (const auto& clique: Derived().max_cliques_set)
+      vector<bool> check(graph.GetGraphSize(), false);
+      for (const auto& clique: graph.max_cliques_set)
       {
         vector<Vertex> single_segment;
         for (const auto& node: clique)
@@ -276,7 +197,7 @@ public:
     /// <summary>
     /// 条件を満たしていない、つまり、長さの閾値を越えていないセグメントに関して前後のものとマージし、正しいセグメントを構築する
     /// </summary>
-    void ConstructInvalidSegment(const Embedding<LangType>& embedding)
+    void ConstructInvalidSegment(const Embedding<VectorDim, LangType>& embedding)
     {
       const auto segment_relatedness = [&embedding, this](const auto& seg1, const auto& seg2)
       {
@@ -286,8 +207,8 @@ public:
           for (const auto& sent2: seg2)
           {
             rel *= embedding.GetSimilarity(
-              Derived().sentence_idx[sent1], 
-              Derived().sentence_idx[sent2]
+              graph.sentence_idx[sent1], 
+              graph.sentence_idx[sent2]
             );
           } 
         }

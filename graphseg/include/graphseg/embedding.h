@@ -21,14 +21,12 @@ namespace GraphSeg
   using std::unordered_map, std::array, std::min, std::sqrt, std::log, 
         std::pow, std::tuple, std::get, std::make_tuple, std::unique_ptr;
 
-  static constexpr auto DIM = 300;
-
-  template <Lang LangType = Lang::EN>
+  template <int VectorDim, Lang LangType = Lang::EN>
   class Embedding
   {
   public:
     using SentenceType = Sentence<LangType>;
-    using WordEmbedding = array<double, DIM>;
+    using WordEmbedding = array<double, VectorDim>;
 
     Embedding() = default;
     
@@ -88,7 +86,7 @@ namespace GraphSeg
         const auto term = itr->name.GetString();
         assert(doc.HasMember(term));
         const auto& get_vector = doc[term];
-        for (SizeType i = 0; i < DIM; ++i)
+        for (SizeType i = 0; i < VectorDim; ++i)
         {
           get<0>(words[term])[static_cast<size_t>(i)] = get_vector[i].GetDouble();
         }
@@ -176,17 +174,17 @@ namespace GraphSeg
     void InitWordEmbedding(string term)
     {
       WordEmbedding wm;
-      for (size_t j = 0; j < DIM; ++j)
+      for (size_t j = 0; j < VectorDim; ++j)
       {
         wm[j] = 0.0;
       }
       words.insert({term, make_tuple(wm, 1)});
     }
 
-    bool IsStopWord(const array<double, DIM>& d) const
+    bool IsStopWord(const array<double, VectorDim>& d) const
     {
       // if d is zero-vector, reguard this term as stop-word
-      for(size_t i = 0; i < DIM; ++i)
+      for(size_t i = 0; i < VectorDim; ++i)
       {
         if (d[i] != 0.0) return false;
       }

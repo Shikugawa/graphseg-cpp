@@ -2,7 +2,7 @@
 #define GRAPHSEG_CPP_GRAPHSEG_LANG_H
 
 #include "graphseg/internal/utils/mecab_helper.h"
-
+#include <iostream>
 #include <type_traits>
 #include <functional>
 #include <string>

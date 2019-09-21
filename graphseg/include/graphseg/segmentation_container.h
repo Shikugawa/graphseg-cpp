@@ -4,22 +4,26 @@
 #include "graphseg/graph/undirected_graph.h"
 #include "graphseg/embedding.h"
 #include "graphseg/sentence.h"
+#include "graphseg/lang.h"
+#include "graphseg/internal/segmentable.h"
 
 namespace GraphSeg
 {
   using namespace graph;
   using std::vector;
 
-  template <class Graph>
+  template <class Graph, int VectorDim, Lang LangType = Lang::EN>
   class SegmentationContainer
   {
-    using SentenceType = typename Graph::SentenceType;
+    using SentenceType = Sentence<LangType>;
 
   public:
-    SegmentationContainer(Graph&& ud) : graph(std::move(ud))
+    SegmentationContainer(Graph&& ud, const Embedding<VectorDim, LangType>& em) 
+      : graph(std::move(ud)), embedding(em)
     {}
 
-    SegmentationContainer(const Graph& ud) : graph(ud)
+    SegmentationContainer(const Graph& ud, const Embedding<VectorDim, LangType>& em) 
+      : graph(ud), embedding(em)
     {}
 
     /// <summary>
@@ -49,6 +53,35 @@ namespace GraphSeg
     }
 
     /// <summary>
+    /// 最小セグメントサイズの左辺値参照を取得する
+    /// </summary>
+    size_t GetMinimumSegmentSize()
+    {
+      return segmentable.minimum_segment_size;
+    }
+
+    /// <summary>
+    /// 最小セグメントサイズの左辺値参照を取得する
+    /// </summary>
+    void SetMinimumSegmentSize(size_t s)
+    {
+      segmentable.minimum_segment_size = s;
+    }
+
+    /// <summary>
+    /// セグメントを返す
+    /// </summary>
+    inline const auto& GetSegment() const&
+    {
+      return segmentable.segments;
+    }
+
+    inline auto GetSegment() &&
+    {
+      return std::move(segmentable.segments);
+    }
+
+    /// <summary>
     /// Set sentence to graph vertex (lvalue & rvalue)
     /// </summary>
     void SetVertices(const vector<SentenceType>& ss)
@@ -72,7 +105,8 @@ namespace GraphSeg
     /// <summary>
     /// Set weight calclated from sentence similarity by word embeddings
     /// </summary>
-    void SetEdges(Embedding<Graph::LType>& em)
+    template <class T>
+    void SetEdges(T& em)
     {
       const auto graph_size = graph.GetGraphSize();
       assert(graph_size > 1);
@@ -93,10 +127,39 @@ namespace GraphSeg
       }
     }
 
+    void Segmentation()
+    {
+      segmentable = Segmentable<Graph, VectorDim, LangType>(graph);
+      graph.SetMaximumClique();
+      segmentable.ConstructSegment();
+      graph.ConstructSegment(embedding);
+    }
+
   private:
+    /// <summary>
+    /// ノードを連結するかどうかを決める閾値
+    /// </summary>
     double thereshold;
+
+    /// <summary>
+    /// センテンスグラフ
+    /// </summary>
     Graph graph;
+
+    /// <summary>
+    /// 文章
+    /// </summary>    
     vector<SentenceType> sentences;
+
+    /// <summary>
+    /// 文章から収集した埋め込み情報
+    /// </summary>
+    Embedding<VectorDim, LangType> embedding;
+
+    /// <summary>
+    /// セグメントを行う機能
+    /// </summary>
+    internal::Segmentable<Graph, VectorDim, LangType> segmentable;
   };
 }
 

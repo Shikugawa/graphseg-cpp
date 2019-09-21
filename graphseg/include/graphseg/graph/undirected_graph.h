@@ -2,10 +2,10 @@
 #define GRAPHSEG_CPP_GRAPHSEG_GRAPH_UNDIRECTED_GRAPH_H 
 
 #include "graphseg/internal/utils/nameof.hpp"
-#include "graphseg/internal/segmentable.h"
 #include "graphseg/lang.h"
 #include "graphseg/sentence.h"
 
+#include <set>
 #include <string>
 #include <iterator>
 #include <memory>
@@ -16,20 +16,76 @@
 
 namespace GraphSeg::graph
 {
-  using std::unordered_map, std::make_pair, std::string, std::set_intersection,
+  using std::set, std::unordered_map, std::make_pair, std::string, std::set_intersection,
         std::set_union, std::set_difference, std::inserter, std::basic_ostream;
 
+  template <typename T, typename = void>
+  struct is_iterable : std::false_type
+  {};
+
+  template <typename T>
+  struct is_iterable<T, std::void_t<decltype(std::declval<T>().begin()), decltype(std::declval<T>().end())>> : std::true_type
+  {};
+
+  template <typename T, bool = is_iterable<typename T::reference>::value>
+  struct is_valid_iterable : std::false_type
+  {};
+
+  template <typename T>
+  struct is_valid_iterable<T, true> : std::true_type
+  {};
+  
+  template <typename T, typename = std::enable_if_t<is_iterable<T>::value>*>
+  T operator&(const T& v1, const T& v2)
+  {
+    T result;
+    set_intersection(v1.begin(), v1.end(), v2.begin(), v2.end(), inserter(result, result.end()));
+    return result;
+  }
+
+  template <typename T, typename = std::enable_if_t<is_iterable<T>::value>*>
+  T operator+(const T& v1, const T& v2)
+  {
+    T result;
+    set_union(v1.begin(), v1.end(), v2.begin(), v2.end(), inserter(result, result.end()));
+    return result;
+  }
+
+  template <typename T, typename = std::enable_if_t<is_iterable<T>::value>*>
+  T operator-(const T& v1, const T& v2)
+  {
+    set<T> result;
+    set_difference(v1.begin(), v1.end(), v2.begin(), v2.end(), inserter(result, result.end()));
+    return result;
+  }
+  
+  template <typename T, typename = std::enable_if_t<is_valid_iterable<T>::value>*>
+  std::ostream& operator<<(std::ostream& os, const T& segments)
+  {
+    for (const auto& segment : segments)
+    {
+      std::string vertex_node;
+      for (const auto& segment_vertex : segment)
+      {
+        vertex_node += std::to_string(segment_vertex);
+        vertex_node += " ";
+      }
+      os << vertex_node << std::endl;
+    }
+    return os;
+  }
+  
   /// <summary>
   /// 与えられた文章から構築された無向グラフ
   /// </summary>
   template <Lang LangType = Lang::EN>
-  class UndirectedGraph : public Segmentable<UndirectedGraph<LangType>, LangType>
+  class UndirectedGraph
   {
   public:
-    static constexpr Lang LType = LangType;
+    using Vertex = unsigned int;
+    using VertexSet = set<Vertex>;
     using SentenceType = Sentence<LangType>;
     using Edge = std::pair<Vertex, double>;
-    using Base = Segmentable<UndirectedGraph>;
 
     /// <summary>
     /// グラフに文章を与えない場合
@@ -217,8 +273,6 @@ namespace GraphSeg::graph
     /// 現在のグラフサイズ
     /// </summary>
     Vertex graph_size = 0;
-
-    friend Base;
   };
 } // namespace GraphSeg
 

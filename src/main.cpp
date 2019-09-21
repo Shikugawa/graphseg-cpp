@@ -12,24 +12,25 @@ using namespace std;
 using namespace GraphSeg;
 using namespace GraphSeg::graph;
 
-constexpr Lang ltype = Lang::EN;
+constexpr Lang ltype = Lang::JP;
+constexpr int VectorDim = 50;
 
 vector<Sentence<ltype>> s;
-Embedding<ltype> em;
+Embedding<VectorDim, ltype> em;
 
 void PrepareSentenceJP()
 {
-  s.emplace_back(Sentence("太郎は花子にプレゼントを渡した。"));
-  s.emplace_back(Sentence("プレゼントの中身は彼女のお気に入りの小説だった。"));
+  s.emplace_back(Sentence<ltype>("太郎は花子にプレゼントを渡した。"));
+  s.emplace_back(Sentence<ltype>("プレゼントの中身は彼女のお気に入りの小説だった。"));
 }
 
 void PrepareSentenceEN()
 {
-  s.emplace_back(Sentence("I want to eat rabbit"));
-  s.emplace_back(Sentence("rabbit is easy to eat"));
-  s.emplace_back(Sentence("turtle is slower than rabbit"));
-  s.emplace_back(Sentence("turtle is yummy"));
-  s.emplace_back(Sentence("especially, turtle soup is delicious"));
+  s.emplace_back(Sentence<ltype>("I want to eat rabbit"));
+  s.emplace_back(Sentence<ltype>("rabbit is easy to eat"));
+  s.emplace_back(Sentence<ltype>("turtle is slower than rabbit"));
+  s.emplace_back(Sentence<ltype>("turtle is yummy"));
+  s.emplace_back(Sentence<ltype>("especially, turtle soup is delicious"));
 }
 
 void PrepareSentenceGraph(UndirectedGraph<ltype>& ud)
@@ -66,7 +67,11 @@ int main()
 
   for (auto a: s)
   {
-    // std::cout << a.GetText() << std::endl;
+    for (auto t: a.GetTerms())
+    {
+      std::cout << t << " ";
+    }
+    std::cout << std::endl;
   }
   // PrepareEmbedding();
 

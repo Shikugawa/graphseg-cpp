@@ -1,6 +1,7 @@
 #ifndef GRAPHSEG_CPP_GRAPHSEG_INTERNAL_UTIL_MECAB_HELPER_H
 #define GRAPHSEG_CPP_GRAPHSEG_INTERNAL_UTIL_MECAB_HELPER_H
 
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -26,7 +27,7 @@ namespace GraphSeg::internal::utils
       }
       if (feature[idx] == '\t')
       {
-        sentence += feature[idx] + " ";
+        sentence += term + " ";
         term.clear();
         is_term = false;
       } 

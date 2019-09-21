@@ -18,12 +18,10 @@ class MyEncoder(json.JSONEncoder):
 
 
 model_path = os.path.join(
-    os.environ["HOME"], "graphseg-cpp/script/en/GoogleNews-vectors-negative300.bin"
+    os.environ["HOME"], "graphseg-cpp/script/jp/word2vec.gensim.model"
 )
 
-model = gensim.models.KeyedVectors.load_word2vec_format(
-    model_path, binary=True, limit=100000
-)
+model = Word2Vec.load(model_path)
 
 line = input()
 
@@ -37,7 +35,7 @@ for word in line.split(" "):
             vector = model.wv[word]
     except:
         continue
-    if len(vector) != 0:
+    if len(vector) != 0:      
         out[word] = vector
 
-print(json.dumps(out, cls=MyEncoder))
+print(json.dumps(out, cls=MyEncoder)["日本語"])
