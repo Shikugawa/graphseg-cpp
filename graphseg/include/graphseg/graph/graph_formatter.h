@@ -36,7 +36,8 @@ namespace GraphSeg::graph
     std::unordered_map<std::string, FormattedNode> value;
   };
 
-  FormattedGraph format(const UndirectedGraph& sg)
+  template <typename T>
+  FormattedGraph format(const T& sg)
   {
     using FormattedNode = FormattedGraph::FormattedNode;
     using FormattedTargetNode = FormattedNode::FormattedTargetNode;
@@ -84,8 +85,8 @@ namespace GraphSeg::graph
     return os;
   }
 
-  template <typename CharT, typename Traits>
-  basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, const UndirectedGraph& sg)
+  template <typename CharT, typename Traits, class T>
+  basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, const T& sg)
   {
     for(size_t i = 0; i < sg.GetGraphSize(); ++i)
     {

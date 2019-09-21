@@ -13,6 +13,8 @@ namespace GraphSeg
   template <class Graph>
   class SegmentationContainer
   {
+    using SentenceType = typename Graph::SentenceType;
+
   public:
     SegmentationContainer(Graph&& ud) : graph(std::move(ud))
     {}
@@ -49,7 +51,7 @@ namespace GraphSeg
     /// <summary>
     /// Set sentence to graph vertex (lvalue & rvalue)
     /// </summary>
-    void SetVertices(const vector<Sentence>& ss)
+    void SetVertices(const vector<SentenceType>& ss)
     {
       for (const auto& s : ss)
       {
@@ -58,7 +60,7 @@ namespace GraphSeg
       }
     }
 
-    void SetVertices(vector<Sentence>&& ss)
+    void SetVertices(vector<SentenceType>&& ss)
     {
       for (auto&& s : std::move(ss))
       {
@@ -70,7 +72,7 @@ namespace GraphSeg
     /// <summary>
     /// Set weight calclated from sentence similarity by word embeddings
     /// </summary>
-    void SetEdges(Embedding& em)
+    void SetEdges(Embedding<Graph::LType>& em)
     {
       const auto graph_size = graph.GetGraphSize();
       assert(graph_size > 1);
@@ -93,8 +95,8 @@ namespace GraphSeg
 
   private:
     double thereshold;
-    UndirectedGraph graph;
-    vector<Sentence> sentences;
+    Graph graph;
+    vector<SentenceType> sentences;
   };
 }
 

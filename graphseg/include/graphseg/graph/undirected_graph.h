@@ -3,6 +3,7 @@
 
 #include "graphseg/internal/utils/nameof.hpp"
 #include "graphseg/internal/segmentable.h"
+#include "graphseg/lang.h"
 #include "graphseg/sentence.h"
 
 #include <string>
@@ -21,9 +22,12 @@ namespace GraphSeg::graph
   /// <summary>
   /// 与えられた文章から構築された無向グラフ
   /// </summary>
-  class UndirectedGraph : public Segmentable<UndirectedGraph>
+  template <Lang LangType = Lang::EN>
+  class UndirectedGraph : public Segmentable<UndirectedGraph<LangType>, LangType>
   {
   public:
+    static constexpr Lang LType = LangType;
+    using SentenceType = Sentence<LangType>;
     using Edge = std::pair<Vertex, double>;
     using Base = Segmentable<UndirectedGraph>;
 
@@ -40,13 +44,13 @@ namespace GraphSeg::graph
     /// <summary>
     /// セグメントグラフにノードを与える
     /// </summary>
-    void SetSentence(const Sentence& s)
+    void SetSentence(const SentenceType& s)
     {
       sentence_idx.emplace_back(s);
       graph.emplace_back(vector<Edge>());
     }
 
-    void SetSentence(Sentence&& s)
+    void SetSentence(SentenceType&& s)
     {
       sentence_idx.emplace_back(std::move(s));
       graph.emplace_back(vector<Edge>());
@@ -108,7 +112,7 @@ namespace GraphSeg::graph
     /// <summary>
     /// 文章を取得する
     /// </summary>
-    inline const Sentence& GetSentence(size_t idx) const&
+    inline const SentenceType& GetSentence(size_t idx) const&
     { 
       return sentence_idx[idx]; 
     }
@@ -197,7 +201,7 @@ namespace GraphSeg::graph
     /// <summary>
     /// グラフのノードIDとセンテンスの対応付
     /// </summary
-    vector<Sentence> sentence_idx;
+    vector<SentenceType> sentence_idx;
 
     /// <summary>
     /// 最大クリーク

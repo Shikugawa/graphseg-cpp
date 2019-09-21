@@ -12,15 +12,18 @@ using namespace std;
 using namespace GraphSeg;
 using namespace GraphSeg::graph;
 
-vector<Sentence<>> s;
-Embedding em;
+constexpr Lang ltype = Lang::EN;
 
-// class MeCab
-// {
+vector<Sentence<ltype>> s;
+Embedding<ltype> em;
 
-// };
+void PrepareSentenceJP()
+{
+  s.emplace_back(Sentence("太郎は花子にプレゼントを渡した。"));
+  s.emplace_back(Sentence("プレゼントの中身は彼女のお気に入りの小説だった。"));
+}
 
-void PrepareSentenceStream()
+void PrepareSentenceEN()
 {
   s.emplace_back(Sentence("I want to eat rabbit"));
   s.emplace_back(Sentence("rabbit is easy to eat"));
@@ -29,7 +32,7 @@ void PrepareSentenceStream()
   s.emplace_back(Sentence("especially, turtle soup is delicious"));
 }
 
-void PrepareSentenceGraph(UndirectedGraph& ud)
+void PrepareSentenceGraph(UndirectedGraph<ltype>& ud)
 {
   ud.SetEdge(0, 7, 30);
   ud.SetEdge(0, 8, 15);
@@ -57,15 +60,15 @@ void PrepareEmbedding()
 
 int main()
 {
-  Lang lang = Lang::JP;
-
-  s.emplace_back("太郎は花子にプレゼントを渡した。");
-  s.emplace_back("プレゼントの中身は彼女のお気に入りの小説だった。");
-
   // Set texts
   double thereshold = 0.05;
-  // PrepareSentenceStream();
-  PrepareEmbedding();
+  PrepareSentenceJP();
+
+  for (auto a: s)
+  {
+    // std::cout << a.GetText() << std::endl;
+  }
+  // PrepareEmbedding();
 
   // UndirectedGraph ug(9);
   // PrepareSentenceGraph(ug);

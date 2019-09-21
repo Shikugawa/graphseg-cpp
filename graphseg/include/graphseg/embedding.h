@@ -27,6 +27,7 @@ namespace GraphSeg
   class Embedding
   {
   public:
+    using SentenceType = Sentence<LangType>;
     using WordEmbedding = array<double, DIM>;
 
     Embedding() = default;
@@ -38,7 +39,7 @@ namespace GraphSeg
     /// <summary>
     /// Preprocess to retrieve embeddings from terms in sentences
     /// </summary>
-    void AddSentenceWords(Sentence& s)
+    void AddSentenceWords(SentenceType& s)
     {
       for (const auto& term: s)
       {
@@ -54,7 +55,7 @@ namespace GraphSeg
       }
     }
 
-    void AddSentenceWords(Sentence&& s)
+    void AddSentenceWords(SentenceType&& s)
     {
       for (auto&& term: std::move(s))
       {
@@ -93,7 +94,7 @@ namespace GraphSeg
         }
       }
 
-      frequency = std::make_unique<Frequency>(term_stream);
+      frequency = std::make_unique<Frequency<LangType>>(term_stream);
     }
 
     /// <summary>
@@ -107,7 +108,7 @@ namespace GraphSeg
     /// <summary>
     /// Get similarity based on Cosine Similarity between sentences 
     /// </summary>
-    double GetSimilarity(const Sentence& sg1, const Sentence& sg2) const&
+    double GetSimilarity(const SentenceType& sg1, const SentenceType& sg2) const&
     {
       double result = 0.0;
       for(const auto& term: sg1.GetTerms())
@@ -192,7 +193,7 @@ namespace GraphSeg
       return true;
     }
 
-    unique_ptr<Frequency> frequency;
+    unique_ptr<Frequency<LangType>> frequency;
     unsigned int termLength;
     unordered_map<string, tuple<WordEmbedding, unsigned int>> words;
   };

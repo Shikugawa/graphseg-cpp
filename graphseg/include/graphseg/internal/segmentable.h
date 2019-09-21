@@ -2,6 +2,7 @@
 #define GRAPHSEG_CPP_GRAPHSEG_SEGMENTABLE_H
 
 #include "graphseg/embedding.h"
+#include "graphseg/lang.h"
 
 #include <type_traits>
 #include <list>
@@ -79,7 +80,7 @@ namespace GraphSeg::internal
     return os;
   }
 
-  template <class T>
+  template <class T, Lang LangType = Lang::EN>
   class Segmentable
   {
   private:
@@ -148,7 +149,7 @@ public:
     /// <summary>
     /// 最大クリークからセグメントを構築する
     /// </summary>
-    void ConstructSegment(const Embedding& embedding)
+    void ConstructSegment(const Embedding<LangType>& embedding)
     {
       if (segments.size() == 0)
       {
@@ -275,7 +276,7 @@ public:
     /// <summary>
     /// 条件を満たしていない、つまり、長さの閾値を越えていないセグメントに関して前後のものとマージし、正しいセグメントを構築する
     /// </summary>
-    void ConstructInvalidSegment(const Embedding& embedding)
+    void ConstructInvalidSegment(const Embedding<LangType>& embedding)
     {
       const auto segment_relatedness = [&embedding, this](const auto& seg1, const auto& seg2)
       {
