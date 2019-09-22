@@ -119,7 +119,7 @@ namespace GraphSeg
     /// </summary>
     void SetVertices()
     {
-      graph.SetSentence();
+      graph.SetNode();
     }
 
     /// <summary>

@@ -2,8 +2,8 @@
 #define GRAPHSEG_CPP_GRAPHSEG_GRAPH_UNDIRECTED_GRAPH_H 
 
 #include "graphseg/internal/utils/nameof.hpp"
+#include "graphseg/graph/segment_graph.h"
 #include "graphseg/lang.h"
-#include "graphseg/sentence.h"
 
 #include <set>
 #include <string>
@@ -79,24 +79,24 @@ namespace GraphSeg::graph
   /// Undirected graph based on passed sentences
   /// </summary>
   template <Lang LangType = Lang::EN>
-  class UndirectedGraph
+  class UndirectedGraph : public SegmentGraph<UndirectedGraph<LangType>, LangType>
   {
   public:
     using Vertex = unsigned int;
     using VertexSet = set<Vertex>;
-    using SentenceType = Sentence<LangType>;
     using Edge = std::pair<Vertex, double>;
+    using Base = SegmentGraph<UndirectedGraph<LangType>, LangType>; 
 
     explicit UndirectedGraph() = default;
 
-    explicit UndirectedGraph(const vector<SentenceType>& _sentences)
-      : graph_size(_sentences.size()), sentences(_sentences)
+    explicit UndirectedGraph(const vector<typename Base::SentenceType>& _sentences)
+      : Base(_sentences), graph_size(_sentences.size())
     {
       graph.resize(graph_size*graph_size);
     }
 
-    explicit UndirectedGraph(SentenceType&& _sentences)
-      : graph_size(_sentences.size()), sentences(std::move(_sentences))
+    explicit UndirectedGraph(vector<typename Base::SentenceType>&& _sentences)
+      : Base(std::move(_sentences)), graph_size(_sentences.size())
     {
       graph.resize(graph_size*graph_size);
     }
@@ -104,9 +104,9 @@ namespace GraphSeg::graph
     /// <summary>
     /// Add node to segment graph
     /// </summary>
-    void SetSentence()
+    void SetNode()
     {
-      for (size_t i = 0; i < sentences.size(); ++i)
+      for (size_t i = 0; i < graph_size; ++i)
       {
         graph.emplace_back(vector<Edge>());
       }      
@@ -166,14 +166,6 @@ namespace GraphSeg::graph
     }
 
     /// <summary>
-    /// get sentence
-    /// </summary>
-    inline const SentenceType& GetSentence(size_t idx) const&
-    { 
-      return sentences[idx]; 
-    }
-
-    /// <summary>
     /// get node number and weight that passed adjacent nodes
     /// </summary>
     inline const vector<Edge>& operator[](size_t idx) const& 
@@ -229,7 +221,6 @@ namespace GraphSeg::graph
 
     void ConstructMaximumCliqueArrayContainer()
     {
-      // TODO: 一度Setで最大クリークを構築するが、定数オーダーで最大クリークが欲しいのでベクターに変換しているが、メモリ効率が悪いし、変換処理も無駄
       max_cliques_internal.resize(graph_size);
       for (auto& max_clique: max_cliques_set)
       {
@@ -256,11 +247,6 @@ namespace GraphSeg::graph
     /// Base graph
     /// </summary>
     vector<vector<Edge>> graph;
-
-    /// <summary>
-    /// all of sentences
-    /// </summary>
-    vector<SentenceType> sentences;
 
     /// <summary>
     /// set of maximum clique
