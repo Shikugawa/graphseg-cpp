@@ -4,6 +4,7 @@
 #include "graphseg/internal/utils/nameof.hpp"
 #include "graphseg/graph/segment_graph.h"
 #include "graphseg/lang.h"
+#include "graphseg/internal/utils/custom_operator.h"
 
 #include <set>
 #include <string>
@@ -16,64 +17,9 @@
 
 namespace GraphSeg::graph
 {
+  using namespace GraphSeg::internal::utils;
   using std::set, std::unordered_map, std::make_pair, std::string, std::set_intersection,
         std::set_union, std::set_difference, std::inserter, std::basic_ostream;
-
-  template <typename T, typename = void>
-  struct is_iterable : std::false_type
-  {};
-
-  template <typename T>
-  struct is_iterable<T, std::void_t<decltype(std::declval<T>().begin()), decltype(std::declval<T>().end())>> : std::true_type
-  {};
-
-  template <typename T, bool = is_iterable<typename T::reference>::value>
-  struct is_valid_iterable : std::false_type
-  {};
-
-  template <typename T>
-  struct is_valid_iterable<T, true> : std::true_type
-  {};
-  
-  template <typename T, typename = std::enable_if_t<is_iterable<T>::value>*>
-  T operator&(const T& v1, const T& v2)
-  {
-    T result;
-    set_intersection(v1.begin(), v1.end(), v2.begin(), v2.end(), inserter(result, result.end()));
-    return result;
-  }
-
-  template <typename T, typename = std::enable_if_t<is_iterable<T>::value>*>
-  T operator+(const T& v1, const T& v2)
-  {
-    T result;
-    set_union(v1.begin(), v1.end(), v2.begin(), v2.end(), inserter(result, result.end()));
-    return result;
-  }
-
-  template <typename T, typename = std::enable_if_t<is_iterable<T>::value>*>
-  T operator-(const T& v1, const T& v2)
-  {
-    set<T> result;
-    set_difference(v1.begin(), v1.end(), v2.begin(), v2.end(), inserter(result, result.end()));
-    return result;
-  }
-  
-  template <typename T, typename = std::enable_if_t<is_valid_iterable<T>::value>*>
-  std::ostream& operator<<(std::ostream& os, const T& segments)
-  {
-    for (const auto& segment : segments)
-    {
-      std::string vertex_node;
-      for (const auto& segment_vertex : segment)
-      {
-        vertex_node += std::to_string(segment_vertex);
-        vertex_node += " ";
-      }
-      os << vertex_node << std::endl;
-    }
-    return os;
-  }
   
   /// <summary>
   /// Undirected graph based on passed sentences
@@ -147,13 +93,13 @@ namespace GraphSeg::graph
       ConstructMaximumCliqueArrayContainer();
 #ifdef DEBUG
       std::cout << "===== Retrieved Maximum Cliques =====" << std::endl;
-      std::cout << max_cliques_set << std::endl;
+      std::cout << max_cliques_set;
       std::cout << "=====================================" << std::endl;
 #endif
     }
 
     /// <summary>
-    /// get caluclated maximum clique
+    /// get caluclated all of maximum cliques
     /// </summary>
     inline const set<VertexSet>& GetMaximumClique() const&
     {
@@ -163,6 +109,14 @@ namespace GraphSeg::graph
     inline set<VertexSet> GetMaximumClique() &&
     {
       return std::move(max_cliques_set);
+    }
+
+    /// <summary>
+    /// get caluclated maximum clique from internal efficient data structure
+    /// </summary>
+    inline const vector<vector<Vertex>>& GetMaximumClique(size_t idx)
+    {
+      return max_cliques_internal[idx];
     }
 
     /// <summary>

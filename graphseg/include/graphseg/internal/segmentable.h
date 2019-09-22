@@ -1,6 +1,7 @@
 #ifndef GRAPHSEG_CPP_GRAPHSEG_SEGMENTABLE_H
 #define GRAPHSEG_CPP_GRAPHSEG_SEGMENTABLE_H
 
+#include "graphseg/internal/utils/custom_operator.h"
 #include "graphseg/embedding.h"
 #include "graphseg/segmentation_container.h"
 #include "graphseg/lang.h"
@@ -19,8 +20,8 @@
 
 namespace GraphSeg::internal
 {
-  using std::list, std::vector, std::tuple, std::inserter;
-
+  using namespace GraphSeg::internal::utils;
+  using std::list, std::vector, std::tuple;
   using Vertex = unsigned int;
 
   template <class Graph, int VectorDim, Lang LangType = Lang::EN>
@@ -28,18 +29,18 @@ namespace GraphSeg::internal
   {
   public:
     /// <summary>
-    /// 最小セグメントサイズ
+    /// minimum segment size
     /// </summary>
     size_t minimum_segment_size = 2;
 
     /// <summary>
-    /// 計算済みセグメント
+    /// calculated segments
     /// <summary>
     mutable vector<vector<Vertex>> segments;
 
   private:
     /// <summary>
-    /// 対象グラフ
+    /// segment graph
     /// </summary>
     Graph graph;
 
@@ -51,15 +52,14 @@ namespace GraphSeg::internal
 
   private:
     /// <summary>
-    /// ファーストセグメント中のあるノードを含む最大クリークが、セカンドセグメントに含まれている場合はマージしても良いとする。
-    /// 最大クリークに含まれているということは、そのノードで示されているトピックがセカンドセグメントで言及されている可能性があるという事である。
+    /// Allow merging if the second segment includes one of maximum clique that includes some any node in first segment
+    /// When one of sentence includes maximum clique, the topic indicated by the sentence should be referred by second segment
     /// </summary>
     bool IsMergable(const vector<Vertex>& sg1, const vector<Vertex>& sg2)
-
     {
       for (const auto& s: sg1)
       {
-        for(const auto& maximum_cliques: graph.max_cliques_internal[s])
+        for(const auto& maximum_cliques: graph.GetMaximumClique(s))
         {
           const auto& duplicated = sg2 & maximum_cliques;
           if (duplicated.size() != 0)
@@ -81,7 +81,7 @@ namespace GraphSeg::internal
 
   public:
     /// <summary>
-    /// 最大クリークからセグメントを構築する
+    /// construct segment from maximum clique
     /// </summary>
     void ConstructSegment(const Embedding<VectorDim, LangType>& embedding)
     {
@@ -89,8 +89,8 @@ namespace GraphSeg::internal
       {
         ConstructInitSegment();
       }
-      
-      // マージできるか調べたセグメントを記録しておく。二重でセグメントが調べられるのを防ぐ
+
+      // to avoid searching same segment twice, memory searched segment whether it can merge
       vector<bool> segment_memo(segments.size(), false);
       vector<vector<Vertex>> next_segment;
 
@@ -110,7 +110,7 @@ namespace GraphSeg::internal
           segment_memo[i] = true;
           segment_memo[i+1] = true;
 
-          // セグメントを先読みしてマージしきれるならマージする
+          // merge if the segment can merge ahead segments
           for(size_t j = 2; IsMergable(merged_segment, segments[i+j]) && i+j < segments.size(); ++j)
           {
             const auto offspring_segment = segments[i+j];
@@ -148,12 +148,12 @@ namespace GraphSeg::internal
   
   private:
     /// <summary>
-    /// 初期セグメントの構築
+    /// instantiate segment
     /// </summary>
     void ConstructInitSegment()
     {
       vector<bool> check(graph.GetGraphSize(), false);
-      for (const auto& clique: graph.max_cliques_set)
+      for (const auto& clique: graph.GetMaximumClique())
       {
         vector<Vertex> single_segment;
         for (const auto& node: clique)
@@ -198,7 +198,7 @@ namespace GraphSeg::internal
     }
 
     /// <summary>
-    /// 条件を満たしていない、つまり、長さの閾値を越えていないセグメントに関して前後のものとマージし、正しいセグメントを構築する
+    /// merge segments that don't have length higher than thereshold
     /// </summary>
     void ConstructInvalidSegment(const Embedding<VectorDim, LangType>& embedding)
     {
@@ -210,8 +210,8 @@ namespace GraphSeg::internal
           for (const auto& sent2: seg2)
           {
             rel *= embedding.GetSimilarity(
-              graph.sentence_idx[sent1], 
-              graph.sentence_idx[sent2]
+              graph.GetSentence(sent1),
+              graph.GetSentence(sent2)
             );
           } 
         }

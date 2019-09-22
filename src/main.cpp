@@ -67,15 +67,12 @@ int main()
   PrepareEmbedding();
 
   UndirectedGraph<ltype> ug(s);
-  // SegmentationContainer<UndirectedGraph<ltype>, VectorDim, ltype> seg(ug, em);
+  SegmentationContainer<UndirectedGraph<ltype>, VectorDim, ltype> seg(ug, em);
 
-  // seg.SetThreshold(thereshold);
-  // seg.SetGraph();
+  seg.SetThreshold(thereshold);
+  seg.SetGraph();
+  seg.Segmentation();
   
-
-  // auto& sg = ctr.GetGraph();
-  // sg.SetMaximumClique();
-  // sg.ConstructSegment(em);  
   // auto segments = sg.GetSegment();
 
   return 0;
