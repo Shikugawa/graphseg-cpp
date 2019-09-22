@@ -76,7 +76,7 @@ namespace GraphSeg::graph
   }
   
   /// <summary>
-  /// 与えられた文章から構築された無向グラフ
+  /// Undirected graph based on passed sentences
   /// </summary>
   template <Lang LangType = Lang::EN>
   class UndirectedGraph
@@ -87,33 +87,33 @@ namespace GraphSeg::graph
     using SentenceType = Sentence<LangType>;
     using Edge = std::pair<Vertex, double>;
 
-    /// <summary>
-    /// グラフに文章を与えない場合
-    /// </summary>
-    explicit UndirectedGraph(uint32_t _graph_size) : graph_size(_graph_size)
+    explicit UndirectedGraph() = default;
+
+    explicit UndirectedGraph(const vector<SentenceType>& _sentences)
+      : graph_size(_sentences.size()), sentences(_sentences)
     {
       graph.resize(graph_size*graph_size);
     }
 
-    explicit UndirectedGraph() = default;
+    explicit UndirectedGraph(SentenceType&& _sentences)
+      : graph_size(_sentences.size()), sentences(std::move(_sentences))
+    {
+      graph.resize(graph_size*graph_size);
+    }
 
     /// <summary>
-    /// セグメントグラフにノードを与える
+    /// Add node to segment graph
     /// </summary>
-    void SetSentence(const SentenceType& s)
+    void SetSentence()
     {
-      sentence_idx.emplace_back(s);
-      graph.emplace_back(vector<Edge>());
-    }
-
-    void SetSentence(SentenceType&& s)
-    {
-      sentence_idx.emplace_back(std::move(s));
-      graph.emplace_back(vector<Edge>());
+      for (size_t i = 0; i < sentences.size(); ++i)
+      {
+        graph.emplace_back(vector<Edge>());
+      }      
     }
 
     /// <summary>
-    /// セグメントグラフにエッジを張る
+    /// pass edges to nodes
     /// </summary>
     void SetEdge(int src, int dst, double score)
     {
@@ -136,7 +136,7 @@ namespace GraphSeg::graph
     }
 
     /// <summary>
-    /// 最大クリークを計算する
+    /// calculate maximum clique
     /// </summary>
     void SetMaximumClique()
     {
@@ -146,14 +146,14 @@ namespace GraphSeg::graph
       BronKerbosch(set<Vertex>(), set<Vertex>(tmp.begin(), tmp.end()), set<Vertex>());
       ConstructMaximumCliqueArrayContainer();
 #ifdef DEBUG
-      // spdlog::info("===== Retrieved Maximum Cliques =====");
-      // std::cout << max_cliques_set << std::endl;
-      // spdlog::info("=====================================");
+      std::cout << "===== Retrieved Maximum Cliques =====" << std::endl;
+      std::cout << max_cliques_set << std::endl;
+      std::cout << "=====================================" << std::endl;
 #endif
     }
 
     /// <summary>
-    /// 計算した最大クリークを取得する
+    /// get caluclated maximum clique
     /// </summary>
     inline const set<VertexSet>& GetMaximumClique() const&
     {
@@ -166,15 +166,15 @@ namespace GraphSeg::graph
     }
 
     /// <summary>
-    /// 文章を取得する
+    /// get sentence
     /// </summary>
     inline const SentenceType& GetSentence(size_t idx) const&
     { 
-      return sentence_idx[idx]; 
+      return sentences[idx]; 
     }
 
     /// <summary>
-    /// 指定したノードに隣接しているノードの番号と重みを取得する
+    /// get node number and weight that passed adjacent nodes
     /// </summary>
     inline const vector<Edge>& operator[](size_t idx) const& 
     { 
@@ -252,25 +252,28 @@ namespace GraphSeg::graph
       return tmp;
     }
 
+    /// <summary>
+    /// Base graph
+    /// </summary>
     vector<vector<Edge>> graph;
 
     /// <summary>
-    /// グラフのノードIDとセンテンスの対応付
-    /// </summary
-    vector<SentenceType> sentence_idx;
+    /// all of sentences
+    /// </summary>
+    vector<SentenceType> sentences;
 
     /// <summary>
-    /// 最大クリーク
+    /// set of maximum clique
     /// </summary>
     set<VertexSet> max_cliques_set;
 
     /// <summary>
-    /// 定数時間で計算済み最大クリークを取得出来る
+    /// Data structure to get maximum clique with O(N)
     /// <summary>
     vector<vector<vector<Vertex>>> max_cliques_internal;
 
     /// <summary>
-    /// 現在のグラフサイズ
+    /// current graph size
     /// </summary>
     Vertex graph_size = 0;
   };

@@ -40,6 +40,21 @@ namespace GraphSeg
     }
 
     /// <summary>
+    /// Set edge weight threshold in graph. If edge weight is higher than it, both vertex are connected each other (lvalue & rvalue)
+    /// </summary>
+    inline void SetNumberSegment(const size_t& n) noexcept 
+    {
+      assert(n > 0);
+      numberSegment = n;
+    }
+
+    inline void SetNumberSegment(size_t&& n) noexcept 
+    { 
+      assert(n > 0);
+      numberSegment = std::move(n);
+    }
+
+    /// <summary>
     /// Get graph (lvalue & rvalue)
     /// </summary>
     inline Graph& GetGraph() &
@@ -53,7 +68,7 @@ namespace GraphSeg
     }
 
     /// <summary>
-    /// 最小セグメントサイズの左辺値参照を取得する
+    /// get minimum segment size
     /// </summary>
     size_t GetMinimumSegmentSize()
     {
@@ -61,7 +76,7 @@ namespace GraphSeg
     }
 
     /// <summary>
-    /// 最小セグメントサイズの左辺値参照を取得する
+    /// set minumum segmentation size
     /// </summary>
     void SetMinimumSegmentSize(size_t s)
     {
@@ -69,7 +84,7 @@ namespace GraphSeg
     }
 
     /// <summary>
-    /// セグメントを返す
+    /// return segment
     /// </summary>
     inline const auto& GetSegment() const&
     {
@@ -81,51 +96,15 @@ namespace GraphSeg
       return std::move(segmentable.segments);
     }
 
-    /// <summary>
-    /// Set sentence to graph vertex (lvalue & rvalue)
-    /// </summary>
-    void SetVertices(const vector<SentenceType>& ss)
+    void SetGraph()
     {
-      for (const auto& s : ss)
-      {
-        graph.SetSentence(s);
-        sentences.emplace_back(s);
-      }
-    }
-
-    void SetVertices(vector<SentenceType>&& ss)
-    {
-      for (auto&& s : std::move(ss))
-      {
-        graph.SetSentence(s);
-        sentences.emplace_back(s);
-      }
+      SetVertices();
+      SetEdges();
     }
 
     /// <summary>
-    /// Set weight calclated from sentence similarity by word embeddings
+    /// Execute segmentation
     /// </summary>
-    void SetEdges()
-    {
-      const auto graph_size = graph.GetGraphSize();
-      assert(graph_size > 1);
-      vector<vector<int>> memo(graph_size, vector<int>(graph_size, 0));
-      for (int i = 0; i < graph_size; ++i)
-      {
-        for (int j = 0; j < graph_size; ++j)
-        {
-          if ((memo[i][j] == 1 && memo[j][i] == 1) || i == j) continue;
-          const auto similarity = embedding.GetSimilarity(sentences[i], sentences[j]);
-          if (similarity > thereshold)
-          {
-            graph.SetEdge(i, j, similarity);
-          }
-          memo[i][j] = 1;
-          memo[j][i] = 1;
-        }
-      }
-    }
-
     void Segmentation()
     {
       segmentable = Segmentable<Graph, VectorDim, LangType>(graph);
@@ -136,27 +115,67 @@ namespace GraphSeg
 
   private:
     /// <summary>
-    /// ノードを連結するかどうかを決める閾値
+    /// Set sentence to graph vertex
+    /// </summary>
+    void SetVertices()
+    {
+      graph.SetSentence();
+    }
+
+    /// <summary>
+    /// Set weight calclated from sentence similarity by word embeddings
+    /// </summary>
+    void SetEdges()
+    {
+      const auto graph_size = graph.GetGraphSize();
+      std::cout << graph_size << std::endl;
+      assert(graph_size > 1);
+      vector<vector<int>> memo(graph_size, vector<int>(graph_size, 0));
+      for (int i = 0; i < graph_size; ++i)
+      {
+        for (int j = 0; j < graph_size; ++j)
+        {
+          if ((memo[i][j] == 1 && memo[j][i] == 1) || i == j) continue;
+          const auto similarity = embedding.GetSimilarity(graph.GetSentence(i), graph.GetSentence(j));
+          std::cout << similarity << std::endl;
+          if (similarity > thereshold)
+          {
+            graph.SetEdge(i, j, similarity);
+          }
+          memo[i][j] = 1;
+          memo[j][i] = 1;
+        }
+      }
+    }
+
+    /// <summary>
+    /// thershold whether connect nodes each other
+    /// if node similarity is lower than thershold, these are not connected
     /// </summary>
     double thereshold;
 
     /// <summary>
-    /// センテンスグラフ
+    /// number of segments
+    /// </summary>
+    size_t numberSegment = 0;
+
+    /// <summary>
+    /// sentence graph
     /// </summary>
     Graph graph;
 
     /// <summary>
-    /// 文章
+    /// sentences
     /// </summary>    
     vector<SentenceType> sentences;
 
     /// <summary>
-    /// 文章から収集した埋め込み情報
+    /// Embedding information extracted from input sentences
     /// </summary>
     Embedding<VectorDim, LangType> embedding;
 
     /// <summary>
-    /// セグメントを行う機能
+    /// entity of segmentation operation
     /// </summary>
     internal::Segmentable<Graph, VectorDim, LangType> segmentable;
   };

@@ -66,14 +66,12 @@ int main()
   PrepareSentenceJP();
   PrepareEmbedding();
 
-  UndirectedGraph<ltype> ug(9);
-  PrepareSentenceGraph(ug);
+  UndirectedGraph<ltype> ug(s);
+  SegmentationContainer<UndirectedGraph<ltype>, VectorDim, ltype> seg(ug, em);
 
-  SegmentationContainer<UndirectedGraph<ltype>, VectorDim, ltype> ctr(ug, em);
-
-  ctr.SetThreshold(thereshold);
-  ctr.SetVertices(s);
-  ctr.SetEdges(); // Seegmentaion Fault: GetSimilarityで配列外参照してそう
+  seg.SetThreshold(thereshold);
+  seg.SetGraph();
+  
 
   // auto& sg = ctr.GetGraph();
   // sg.SetMaximumClique();
