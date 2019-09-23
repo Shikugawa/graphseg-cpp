@@ -28,31 +28,31 @@ namespace GraphSeg::internal
 
     Frequency(string&& stream)
     {
-      AddFrequency(std::forward<string>(stream));
+      AddFrequency(std::forward<string&&>(stream));
     }
 
     /// <summary>
-    /// 単語の頻度を得る
+    /// get term frequency ratio
     /// </summary>
-    double GetFrequency(const string& term)
+    inline const unsigned int GetFrequency(const string& term)
     {
-      return frequency[term];
+      return frequency_count[term];
     }
 
     /// <summary>
-    /// 総単語数
+    /// number of terms
     /// </summary>
-    inline const uint64_t& GetSize() noexcept
+    inline const unsigned int& GetTotalCount() noexcept
     { 
       return total_count; 
     }
 
     /// <summary>
-    /// 頻度の合計を与える
+    /// get corpus size
     /// </summary>
-    inline const uint64_t& GetSumFreq() noexcept 
+    inline const unsigned int& GetCorpusSize() noexcept
     { 
-      return sum_frequency; 
+      return corpus_size; 
     }
 
   private:
@@ -67,22 +67,36 @@ namespace GraphSeg::internal
       assert(parse_result == false);
       for (auto itr = doc.MemberBegin(); itr != doc.MemberEnd(); ++itr)
       {
-        const auto term = itr->name.GetString();
+        const auto& term = itr->name.GetString();
         assert(doc.HasMember(term));
-        if (!std::strcmp("total_count", term))
+        if (std::string(term) == "corpus_size")
         {
-          total_count = doc[term].GetInt();
+          corpus_size = doc[term].GetUint();
           continue;
         }
-        const auto& freq = doc[term].GetDouble();
-        sum_frequency += freq;
-        frequency[term] = freq;
+        if (std::string(term) == "total_count")
+        {
+          total_count = doc[term].GetUint();
+          continue;
+        }
+        frequency_count[term] = doc[term].GetUint();
       }
     }
 
+    /// <summary>
+    /// Σ_{w'∈C}freq(w')
+    /// </summary>
     unsigned int total_count;
-    double sum_frequency;
-    unordered_map<string, double> frequency;
+
+    /// <summary>
+    /// |C|
+    /// </summary>
+    unsigned int corpus_size;
+
+    /// <summary>
+    /// term count
+    /// </summary>
+    unordered_map<string, unsigned int> frequency_count;
   };
 }
 

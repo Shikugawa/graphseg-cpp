@@ -21,7 +21,7 @@ Embedding<VectorDim, ltype> em;
 void PrepareSentenceJP()
 {
   s.emplace_back(Sentence<ltype>("太郎は花子にプレゼントを渡した。"));
-  s.emplace_back(Sentence<ltype>("プレゼントの中身は彼女のお気に入りの小説だった。"));
+  s.emplace_back(Sentence<ltype>("プレゼントの中身は彼女のお気に入りの小説だった"));
 }
 
 void PrepareSentenceEN()

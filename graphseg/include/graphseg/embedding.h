@@ -140,9 +140,9 @@ namespace GraphSeg
 
     double InformationContent(const string& term) const
     {
-      const auto numerator = frequency->GetSize() + frequency->GetSumFreq();
-      const auto denominator = frequency->GetFrequency(term) + 1;
-      return denominator / numerator;
+      const double denominator = frequency->GetFrequency(term) + 1;
+      const double numerator = frequency->GetCorpusSize() + frequency->GetTotalCount();
+      return -std::log(denominator / numerator);
     }
 
     string GetTermStream() const

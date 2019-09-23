@@ -139,8 +139,7 @@ namespace GraphSeg::internal
      
 #ifdef DEBUG
       std::cout << "===== Merged Segment =====" << std::endl; 
-      std::cout << segments;
-      std::cout << "===========================" << std::endl;
+      std::cout << segments << std::endl;
 #endif
 
       ConstructInvalidSegment(embedding);
@@ -192,8 +191,7 @@ namespace GraphSeg::internal
 
 #ifdef DEBUG
       std::cout << "===== Initial Segment =====" << std::endl;
-      std::cout << segments;
-      std::cout << "===========================" << std::endl;
+      std::cout << segments << std::endl;
 #endif
     }
 
@@ -282,8 +280,7 @@ namespace GraphSeg::internal
 
 #ifdef DEBUG
       std::cout << "===== Small Segment =====" << std::endl;
-      std::cout << segments;
-      std::cout << "===========================" << std::endl;
+      std::cout << segments << std::endl;
 #endif
     }
   };

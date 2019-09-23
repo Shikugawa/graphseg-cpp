@@ -93,8 +93,7 @@ namespace GraphSeg::graph
       ConstructMaximumCliqueArrayContainer();
 #ifdef DEBUG
       std::cout << "===== Retrieved Maximum Cliques =====" << std::endl;
-      std::cout << max_cliques_set;
-      std::cout << "=====================================" << std::endl;
+      std::cout << max_cliques_set << std::endl;
 #endif
     }
 

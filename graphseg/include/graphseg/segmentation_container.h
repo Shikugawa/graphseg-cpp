@@ -134,7 +134,6 @@ namespace GraphSeg
     void SetEdges()
     {
       const auto graph_size = graph.GetGraphSize();
-      std::cout << graph_size << std::endl;
       assert(graph_size > 1);
       vector<vector<int>> memo(graph_size, vector<int>(graph_size, 0));
       for (int i = 0; i < graph_size; ++i)
@@ -146,6 +145,12 @@ namespace GraphSeg
             continue;
           }
           const auto similarity = embedding.GetSimilarity(graph.GetSentence(i), graph.GetSentence(j));
+          #ifdef DEBUG
+            std::cout << "sentence 1: " << graph.GetSentence(i).GetText() << std::endl;
+            std::cout << "sentence 2: " << graph.GetSentence(j).GetText() << std::endl;
+            std::cout << "similarity: " << similarity << std::endl;
+            std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
+          #endif
           if (similarity > thereshold)
           {
             graph.SetEdge(i, j, similarity);
