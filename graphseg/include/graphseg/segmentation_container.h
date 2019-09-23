@@ -10,7 +10,7 @@
 namespace GraphSeg
 {
   using namespace graph;
-  using std::vector, std::make_unique;
+  using std::vector, std::make_unique, std::shared_ptr, std::make_shared;
 
   template <class Graph, int VectorDim, Lang LangType = Lang::EN>
   class SegmentationContainer
@@ -18,12 +18,12 @@ namespace GraphSeg
     using SentenceType = Sentence<LangType>;
 
   public:
-    SegmentationContainer(Graph&& ud, const Embedding<VectorDim, LangType>& em) 
-      : graph(std::move(ud)), embedding(em)
+    SegmentationContainer(const vector<SentenceType>& sentences, const Embedding<VectorDim, LangType>& em) 
+      : graph(make_shared<Graph>(sentences)), embedding(em)
     {}
 
-    SegmentationContainer(const Graph& ud, const Embedding<VectorDim, LangType>& em) 
-      : graph(ud), embedding(em)
+    SegmentationContainer(vector<SentenceType>&& sentences, const Embedding<VectorDim, LangType>& em) 
+      : graph(make_shared<Graph>(sentences)), embedding(em)
     {}
 
     /// <summary>
@@ -59,12 +59,12 @@ namespace GraphSeg
     /// </summary>
     inline Graph& GetGraph() &
     { 
-      return graph; 
+      return *graph; 
     }
 
     inline Graph&& GetGraph() &&
     {
-      return std::move(graph);
+      return std::move(*graph);
     }
 
     /// <summary>
@@ -115,7 +115,7 @@ namespace GraphSeg
     void Segmentation()
     {
       segmentable = make_unique<internal::Segmentable<Graph, VectorDim, LangType>>(graph);
-      graph.SetMaximumClique();
+      graph->SetMaximumClique();
       segmentable->ConstructSegment(embedding);
     }
 
@@ -125,7 +125,7 @@ namespace GraphSeg
     /// </summary>
     void SetVertices()
     {
-      graph.SetNode();
+      graph->SetNode();
     }
 
     /// <summary>
@@ -133,7 +133,7 @@ namespace GraphSeg
     /// </summary>
     void SetEdges()
     {
-      const auto graph_size = graph.GetGraphSize();
+      const auto graph_size = graph->GetGraphSize();
       assert(graph_size > 1);
       vector<vector<int>> memo(graph_size, vector<int>(graph_size, 0));
       for (int i = 0; i < graph_size; ++i)
@@ -144,16 +144,16 @@ namespace GraphSeg
           {
             continue;
           }
-          const auto similarity = embedding.GetSimilarity(graph.GetSentence(i), graph.GetSentence(j));
+          const auto similarity = embedding.GetSimilarity(graph->GetSentence(i), graph->GetSentence(j));
           #ifdef DEBUG
-            std::cout << "sentence 1: " << graph.GetSentence(i).GetText() << std::endl;
-            std::cout << "sentence 2: " << graph.GetSentence(j).GetText() << std::endl;
+            std::cout << "sentence 1: " << graph->GetSentence(i).GetText() << std::endl;
+            std::cout << "sentence 2: " << graph->GetSentence(j).GetText() << std::endl;
             std::cout << "similarity: " << similarity << std::endl;
             std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
           #endif
           if (similarity > thereshold)
           {
-            graph.SetEdge(i, j, similarity);
+            graph->SetEdge(i, j, similarity);
           }
           memo[i][j] = 1;
           memo[j][i] = 1;
@@ -173,11 +173,6 @@ namespace GraphSeg
     size_t numberSegment = 0;
 
     /// <summary>
-    /// sentence graph
-    /// </summary>
-    Graph graph;
-
-    /// <summary>
     /// sentences
     /// </summary>    
     vector<SentenceType> sentences;
@@ -186,6 +181,11 @@ namespace GraphSeg
     /// Embedding information extracted from input sentences
     /// </summary>
     Embedding<VectorDim, LangType> embedding;
+
+    /// <summary>
+    /// sentence graph
+    /// </summary>
+    shared_ptr<Graph> graph;
 
     /// <summary>
     /// entity of segmentation operation 

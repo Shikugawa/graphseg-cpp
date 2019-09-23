@@ -12,28 +12,28 @@ using namespace std;
 using namespace GraphSeg;
 using namespace GraphSeg::graph;
 
-constexpr Lang ltype = Lang::JP;
-constexpr int VectorDim = 50;
+constexpr Lang LangType = Lang::EN;
+constexpr int VectorDim = 300;
 
-vector<Sentence<ltype>> s;
-Embedding<VectorDim, ltype> em;
+vector<Sentence<LangType>> s;
+Embedding<VectorDim, LangType> em;
 
 void PrepareSentenceJP()
 {
-  s.emplace_back(Sentence<ltype>("太郎は花子にプレゼントを渡した。"));
-  s.emplace_back(Sentence<ltype>("プレゼントの中身は彼女のお気に入りの小説だった"));
+  s.emplace_back(Sentence<LangType>("太郎は花子にプレゼントを渡した。"));
+  s.emplace_back(Sentence<LangType>("プレゼントの中身は彼女のお気に入りの小説だった"));
 }
 
 void PrepareSentenceEN()
 {
-  s.emplace_back(Sentence<ltype>("I want to eat rabbit"));
-  s.emplace_back(Sentence<ltype>("rabbit is easy to eat"));
-  s.emplace_back(Sentence<ltype>("turtle is slower than rabbit"));
-  s.emplace_back(Sentence<ltype>("turtle is yummy"));
-  s.emplace_back(Sentence<ltype>("especially, turtle soup is delicious"));
+  s.emplace_back(Sentence<LangType>("I want to eat rabbit"));
+  s.emplace_back(Sentence<LangType>("rabbit is easy to eat"));
+  s.emplace_back(Sentence<LangType>("turtle is slower than rabbit"));
+  s.emplace_back(Sentence<LangType>("turtle is yummy"));
+  s.emplace_back(Sentence<LangType>("especially, turtle soup is delicious"));
 }
 
-void PrepareSentenceGraph(UndirectedGraph<ltype>& ud)
+void PrepareSentenceGraph(UndirectedGraph<LangType>& ud)
 {
   ud.SetEdge(0, 7, 30);
   ud.SetEdge(0, 8, 15);
@@ -62,12 +62,11 @@ void PrepareEmbedding()
 int main()
 {
   // Set texts
-  double thereshold = 0.05;
-  PrepareSentenceJP();
+  double thereshold = 35;
+  PrepareSentenceEN();
   PrepareEmbedding();
 
-  UndirectedGraph<ltype> ug(s);
-  SegmentationContainer<UndirectedGraph<ltype>, VectorDim, ltype> seg(ug, em);
+  SegmentationContainer<UndirectedGraph<LangType>, VectorDim, LangType> seg(s, em);
 
   seg.SetThreshold(thereshold);
   seg.SetGraph();
