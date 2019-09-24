@@ -13,8 +13,8 @@ using namespace std;
 using namespace GraphSeg;
 using namespace GraphSeg::graph;
 
-constexpr Lang LangType = Lang::EN;
-constexpr int VectorDim = 300;
+constexpr Lang LangType = Lang::JP;
+constexpr int VectorDim = 50;
 
 vector<Sentence<LangType>> s;
 Embedding<VectorDim, LangType> em;
@@ -64,7 +64,7 @@ int main()
 {
   // Set texts
   double thereshold = 35;
-  PrepareSentenceEN();
+  PrepareSentenceJP();
   PrepareEmbedding();
 
   SegmentationContainer<UndirectedGraph<LangType>, VectorDim, LangType> seg(s, em);
