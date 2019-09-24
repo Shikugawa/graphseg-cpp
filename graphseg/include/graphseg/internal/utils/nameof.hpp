@@ -29,8 +29,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE  OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef NEARGYE_NAMEOF_HPP
-#define NEARGYE_NAMEOF_HPP
+#ifndef NEARGYE_NAMEOF_HPPPP
+#define NEARGYE_NAMEOF_HPPPP
 
 #include <array>
 #include <cstddef>
@@ -281,4 +281,4 @@ template <typename T>
 // Obtains string name of variable type.
 #define NAMEOF_VAR_TYPE(...) ::nameof::nameof_type<decltype(__VA_ARGS__)>()
 
-#endif // NEARGYE_NAMEOF_HPP
+#endif // NEARGYE_NAMEOF_HPPPP

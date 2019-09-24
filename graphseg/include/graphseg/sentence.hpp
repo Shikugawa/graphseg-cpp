@@ -1,5 +1,8 @@
-#ifndef GRAPHSEG_CPP_GRAPHSEG_SENTENCE_H
-#define GRAPHSEG_CPP_GRAPHSEG_SENTENCE_H
+#ifndef GRAPHSEG_CPP_GRAPHSEG_SENTENCE_HPP
+#define GRAPHSEG_CPP_GRAPHSEG_SENTENCE_HPP
+
+#include "graphseg/internal/utils/mecab_helper.hpp"
+#include "graphseg/lang.hpp"
 
 #include <type_traits>
 #include <string>
@@ -7,30 +10,28 @@
 #include <iostream>
 #include <algorithm>
 #include <mecab.h>
-#include <graphseg/lang.h>
-#include <graphseg/internal/utils/mecab_helper.h>
 
 namespace GraphSeg
 {
-  using std::string, std::vector, std::is_same_v;
+  using std::wstring, std::vector, std::is_same_v;
 
   template <Lang LangType = Lang::EN>
   class Sentence
   {
-    using iterator = vector<string>::iterator;
-    using const_iterator = vector<string>::const_iterator;
+    using iterator = vector<wstring>::iterator;
+    using const_iterator = vector<wstring>::const_iterator;
 
     vector<char> deliminator_set;
 
   public:
-    Sentence(string&& s)
+    Sentence(wstring&& s)
     {
       deliminator_set.emplace_back(' ');
       sentence = I18NFactory<LangType>::SentenceTagger()(s);
       CreateTerm();
     }
 
-    Sentence(const string& s)
+    Sentence(const wstring& s)
     {
       deliminator_set.emplace_back(' ');
       sentence = I18NFactory<LangType>::SentenceTagger()(std::move(s));
@@ -60,12 +61,12 @@ namespace GraphSeg
     /// <summary>
     /// Get all term retrieved from sentences
     /// </summary>
-    const vector<string>& GetTerms() const& 
+    const vector<wstring>& GetTerms() const& 
     {
       return terms; 
     }
 
-    vector<string> GetTerms() &&
+    vector<wstring> GetTerms() &&
     {
       return std::move(terms);
     }
@@ -81,12 +82,12 @@ namespace GraphSeg
     /// <summary>
     /// Get all sentence (rvalue & lvalue)
     /// </summary>
-    const string& GetText() const& 
+    const wstring& GetText() const& 
     { 
       return sentence; 
     }
 
-    string GetText() &&
+    wstring GetText() &&
     { 
       return std::move(sentence); 
     }
@@ -113,7 +114,7 @@ namespace GraphSeg
     /// <summary>
     /// Operator : Get term with index
     /// </summary>
-    const string& operator[](size_t idx)
+    const wstring& operator[](size_t idx)
     { 
       return terms[idx]; 
     }
@@ -121,7 +122,7 @@ namespace GraphSeg
   private:
     void CreateTerm()
     {
-      string item;
+      wstring item;
       for (auto itr = sentence.begin(); itr != sentence.end(); ++itr)
       {
         if (std::find(deliminator_set.begin(), deliminator_set.end(), *itr) != deliminator_set.end())
@@ -135,8 +136,8 @@ namespace GraphSeg
       terms.emplace_back(item);
     }
 
-    string sentence;
-    vector<string> terms;
+    wstring sentence;
+    vector<wstring> terms;
   };
 } // GraohSeg
 

@@ -1,8 +1,8 @@
-#ifndef GRAPHSEG_CPP_GRAPHSEG_LANG_H
-#define GRAPHSEG_CPP_GRAPHSEG_LANG_H
+#ifndef GRAPHSEG_CPP_GRAPHSEG_LANG_HPP
+#define GRAPHSEG_CPP_GRAPHSEG_LANG_HPP
 
-#include "graphseg/internal/utils/mecab_helper.h"
-#include "graphseg/sentence.h"
+#include "graphseg/internal/utils/mecab_helper.hpp"
+#include "graphseg/sentence.hpp"
 
 #include <iostream>
 #include <type_traits>

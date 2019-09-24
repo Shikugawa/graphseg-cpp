@@ -1,6 +1,7 @@
 #define DEBUG
 
-#include "graphseg/graphseg.h"
+#include "graphseg/graphseg.hpp"
+
 #include <vector>
 #include <iostream>
 #include <string>
@@ -20,17 +21,17 @@ Embedding<VectorDim, LangType> em;
 
 void PrepareSentenceJP()
 {
-  s.emplace_back(Sentence<LangType>("太郎は花子にプレゼントを渡した。"));
-  s.emplace_back(Sentence<LangType>("プレゼントの中身は彼女のお気に入りの小説だった"));
+  s.emplace_back(Sentence<LangType>(L"太郎は花子にプレゼントを渡した。"));
+  s.emplace_back(Sentence<LangType>(L"プレゼントの中身は彼女のお気に入りの小説だった"));
 }
 
 void PrepareSentenceEN()
 {
-  s.emplace_back(Sentence<LangType>("I want to eat rabbit"));
-  s.emplace_back(Sentence<LangType>("rabbit is easy to eat"));
-  s.emplace_back(Sentence<LangType>("turtle is slower than rabbit"));
-  s.emplace_back(Sentence<LangType>("turtle is yummy"));
-  s.emplace_back(Sentence<LangType>("especially, turtle soup is delicious"));
+  s.emplace_back(Sentence<LangType>(L"I want to eat rabbit"));
+  s.emplace_back(Sentence<LangType>(L"rabbit is easy to eat"));
+  s.emplace_back(Sentence<LangType>(L"turtle is slower than rabbit"));
+  s.emplace_back(Sentence<LangType>(L"turtle is yummy"));
+  s.emplace_back(Sentence<LangType>(L"especially, turtle soup is delicious"));
 }
 
 void PrepareSentenceGraph(UndirectedGraph<LangType>& ud)

@@ -1,7 +1,7 @@
-#ifndef GRAPHSEG_CPP_GRAPHSEG_INTERNAL_UTIL_CUSTOM_OPERATOR_H
-#define GRAPHSEG_CPP_GRAPHSEG_INTERNAL_UTIL_CUSTOM_OPERATOR_H
+#ifndef GRAPHSEG_CPP_GRAPHSEG_INTERNAL_UTIL_CUSTOM_OPERATOR_HPP
+#define GRAPHSEG_CPP_GRAPHSEG_INTERNAL_UTIL_CUSTOM_OPERATOR_HPP
 
-#include "graphseg/internal/utils/custom_traits.h"
+#include "graphseg/internal/utils/custom_traits.hpp"
 
 #include <set>
 #include <type_traits>

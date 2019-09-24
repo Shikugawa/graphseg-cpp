@@ -1,11 +1,11 @@
-#ifndef GRAPHSEG_INTERNAL_GRAPHSEG_SEGMENTATION_CONTAINER_H
-#define GRAPHSEG_INTERNAL_GRAPHSEG_SEGMENTATION_CONTAINER_H
+#ifndef GRAPHSEG_INTERNAL_GRAPHSEG_SEGMENTATION_CONTAINER_HPP
+#define GRAPHSEG_INTERNAL_GRAPHSEG_SEGMENTATION_CONTAINER_HPP
 
-#include "graphseg/graph/undirected_graph.h"
-#include "graphseg/embedding.h"
-#include "graphseg/sentence.h"
-#include "graphseg/lang.h"
-#include "graphseg/internal/segmentable.h"
+#include "graphseg/graph/undirected_graph.hpp"
+#include "graphseg/embedding.hpp"
+#include "graphseg/sentence.hpp"
+#include "graphseg/lang.hpp"
+#include "graphseg/internal/segmentable.hpp"
 
 namespace GraphSeg
 {

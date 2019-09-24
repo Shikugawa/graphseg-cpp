@@ -1,8 +1,8 @@
-#ifndef GRAPHSEG_CPP_GRAPHSEG_INTERNAL_FREQUENCY_H
-#define GRAPHSEG_CPP_GRAPHSEG_INTERNAL_FREQUENCY_H
+#ifndef GRAPHSEG_CPP_GRAPHSEG_INTERNAL_FREQUENCY_HPP
+#define GRAPHSEG_CPP_GRAPHSEG_INTERNAL_FREQUENCY_HPP
 
-#include "graphseg/internal/utils/exec.h"
-#include "graphseg/lang.h"
+#include "graphseg/internal/utils/exec.hpp"
+#include "graphseg/lang.hpp"
 
 #include <string>
 #include <utility>

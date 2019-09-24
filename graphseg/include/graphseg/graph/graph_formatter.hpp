@@ -1,7 +1,7 @@
-#ifndef GRAPHSEG_GRAPH_GRAPH_FORMATTER_H
-#define GRAPHSEG_GRAPH_GRAPH_FORMATTER_H
+#ifndef GRAPHSEG_GRAPH_GRAPH_FORMATTER_HPP
+#define GRAPHSEG_GRAPH_GRAPH_FORMATTER_HPP
 
-#include "graphseg/graph/undirected_graph.h"
+#include "graphseg/graph/undirected_graph.hpp"
 
 #include <string>
 #include <vector>

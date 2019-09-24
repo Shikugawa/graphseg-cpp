@@ -1,10 +1,10 @@
-#ifndef GRAPHSEG_CPP_GRAPHSEG_EMBEDDING_H
-#define GRAPHSEG_CPP_GRAPHSEG_EMBEDDING_H
+#ifndef GRAPHSEG_CPP_GRAPHSEG_EMBEDDING_HPP
+#define GRAPHSEG_CPP_GRAPHSEG_EMBEDDING_HPP
 
-#include "graphseg/lang.h"
-#include "graphseg/sentence.h"
-#include "graphseg/internal/utils/exec.h"
-#include "graphseg/internal/frequency.h"
+#include "graphseg/lang.hpp"
+#include "graphseg/sentence.hpp"
+#include "graphseg/internal/utils/exec.hpp"
+#include "graphseg/internal/frequency.hpp"
 
 #include <rapidjson/document.h>
 #include <unordered_map>

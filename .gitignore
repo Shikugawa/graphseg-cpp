@@ -43,3 +43,5 @@ build/
 *.bin
 *.model
 *.npy
+
+data/

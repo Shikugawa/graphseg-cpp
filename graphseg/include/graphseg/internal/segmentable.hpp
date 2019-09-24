@@ -1,10 +1,10 @@
-#ifndef GRAPHSEG_CPP_GRAPHSEG_SEGMENTABLE_H
-#define GRAPHSEG_CPP_GRAPHSEG_SEGMENTABLE_H
+#ifndef GRAPHSEG_CPP_GRAPHSEG_SEGMENTABLE_HPP
+#define GRAPHSEG_CPP_GRAPHSEG_SEGMENTABLE_HPP
 
-#include "graphseg/internal/utils/custom_operator.h"
-#include "graphseg/embedding.h"
-#include "graphseg/segmentation_container.h"
-#include "graphseg/lang.h"
+#include "graphseg/internal/utils/custom_operator.hpp"
+#include "graphseg/embedding.hpp"
+#include "graphseg/segmentation_container.hpp"
+#include "graphseg/lang.hpp"
 
 #include <type_traits>
 #include <list>

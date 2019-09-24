@@ -1,8 +1,8 @@
-#ifndef GRAPHSEG_CPP_GRAPHSEG_GRAPH_SEGMENT_GRAPH_H
-#define GRAPHSEG_CPP_GRAPHSEG_GRAPH_SEGMENT_GRAPH_H 
+#ifndef GRAPHSEG_CPP_GRAPHSEG_GRAPH_SEGMENT_GRAPH_HPP
+#define GRAPHSEG_CPP_GRAPHSEG_GRAPH_SEGMENT_GRAPH_HPP 
 
-#include "graphseg/sentence.h"
-#include "graphseg/lang.h"
+#include "graphseg/sentence.hpp"
+#include "graphseg/lang.hpp"
 
 #include <vector>
 

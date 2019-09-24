@@ -1,10 +1,10 @@
-#ifndef GRAPHSEG_CPP_GRAPHSEG_GRAPH_UNDIRECTED_GRAPH_H
-#define GRAPHSEG_CPP_GRAPHSEG_GRAPH_UNDIRECTED_GRAPH_H 
+#ifndef GRAPHSEG_CPP_GRAPHSEG_GRAPH_UNDIRECTED_GRAPH_HPP
+#define GRAPHSEG_CPP_GRAPHSEG_GRAPH_UNDIRECTED_GRAPH_HPP 
 
 #include "graphseg/internal/utils/nameof.hpp"
-#include "graphseg/graph/segment_graph.h"
-#include "graphseg/lang.h"
-#include "graphseg/internal/utils/custom_operator.h"
+#include "graphseg/graph/segment_graph.hpp"
+#include "graphseg/lang.hpp"
+#include "graphseg/internal/utils/custom_operator.hpp"
 
 #include <set>
 #include <string>
