@@ -75,7 +75,6 @@ namespace GraphSeg::internal
     vector<Vertex> GetMergedSegment(const vector<Vertex>& first_itr, const vector<Vertex> second_itr)
     {
       vector<Vertex> merged_segment = first_itr;
-      merged_segment.resize(first_itr.size() + second_itr.size() - 1);
       merged_segment.insert(merged_segment.end(), second_itr.begin(), second_itr.end());
       return merged_segment;
     }

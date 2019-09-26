@@ -75,7 +75,6 @@ namespace GraphSeg
         }
         else if (article.at(current_idx) == L'。') // Sentence deliminator
         {
-          // std::wcout << current_sentence << std::endl;
           sentences.emplace_back(Sentence<Lang::JP>(current_sentence));
           current_sentence.clear();
         }
