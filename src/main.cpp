@@ -72,40 +72,25 @@ int main()
   const std::string home = getenv("HOME");
   std::string dataPath = home + "/graphseg-cpp/data/article01.txt";
   auto stream = TextTransform<LangType>(dataPath);
-  // const std::string home = getenv("HOME");
-  // std::wifstream wif(home + "/graphseg-cpp/data/article01.txt");
-  // wif.imbue(std::locale("ja_JP.UTF-8"));
-
-  // std::wcout.imbue(std::locale("ja_JP.UTF-8"));
-  // std::wstringstream wss;
-  // wss << wif.rdbuf();
-  // std::wstring dest = wss.str();
-
-  // std::wstring dest;
 
   // if (dest[0] == L'あ')
   // {
   //   std::cout << "ああああああ" << std::endl;
   // }
 
-  // ifs >> dest;
-  // int pointer = 0;
-  // std::cout << dest.size() << std::endl;
-  for (int i = 0; i < stream.size(); ++i)
-  {
-    std::wcout << stream[i] << std::endl;
-  }
-  
-  // std::wcout << dest << std::endl;
-
-  // std::wcout << dest[3] << std::endl;
-  // Transfer<LangType> transfer(dest);
-  // auto sentences = transfer.Transcode();
-
-  // for (auto&& sentnece : sentences)
+  // for (int i = 0; i < stream.size(); ++i)
   // {
-  //   std::cout << sentnece.GetText() << std::endl;
+  //   std::wcout << stream[i] << std::endl;
   // }
+  
+  Transfer<LangType> transfer(stream);
+  auto sentences = transfer.Transcode();
+
+  for (auto&& sentnece : sentences)
+  {
+    std::cout << sentnece.GetText() << std::endl;
+  }
+
   // Set texts
   // double thereshold = 35;
   // PrepareSentenceJP();

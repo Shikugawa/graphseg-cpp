@@ -10,7 +10,9 @@ namespace GraphSeg::internal::utils
   using std::vector, std::string;
 
   /// <summary>
-  /// パース結果から記号かどうかを検出する
+  /// detect if it is symbol or not from MeCab parse result
+  /// Currently, I've not use this because it is not needed
+  /// But if including symbol cause decline segmentation accuracy, Use it to avoid this problem.
   /// </summary>
   bool IsSymbol(const char* feature, int pointer)
   {
@@ -32,7 +34,7 @@ namespace GraphSeg::internal::utils
   }
 
   /// <summary>
-  /// MeCabのパース結果からもとの文章に含まれる単語を抽出する
+  /// Detect terms from MeCab parse result
   /// </summary>  
   const string ExtractTerm(const char* feature)
   {
@@ -47,7 +49,7 @@ namespace GraphSeg::internal::utils
       {
         is_term = true;
       }
-      if (feature[idx] == '\t' && !IsSymbol(feature, idx))
+      if (feature[idx] == '\t')
       {
         sentence += term + " ";
         term.clear();
