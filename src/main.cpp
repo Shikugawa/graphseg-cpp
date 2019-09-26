@@ -2,12 +2,18 @@
 
 #include "graphseg/graphseg.hpp"
 
+#include <sstream>
+#include <fstream>
 #include <vector>
 #include <iostream>
 #include <string>
 #include <list>
 #include <set>
-#include <mecab.h>
+
+#include <codecvt>
+#include <clocale>
+#include <cstdio>
+#include <locale>
 
 using namespace std;
 using namespace GraphSeg;
@@ -62,16 +68,54 @@ void PrepareEmbedding()
 
 int main()
 {
+
+  const std::string home = getenv("HOME");
+  std::string dataPath = home + "/graphseg-cpp/data/article01.txt";
+  auto stream = TextTransform<LangType>(dataPath);
+  // const std::string home = getenv("HOME");
+  // std::wifstream wif(home + "/graphseg-cpp/data/article01.txt");
+  // wif.imbue(std::locale("ja_JP.UTF-8"));
+
+  // std::wcout.imbue(std::locale("ja_JP.UTF-8"));
+  // std::wstringstream wss;
+  // wss << wif.rdbuf();
+  // std::wstring dest = wss.str();
+
+  // std::wstring dest;
+
+  // if (dest[0] == L'あ')
+  // {
+  //   std::cout << "ああああああ" << std::endl;
+  // }
+
+  // ifs >> dest;
+  // int pointer = 0;
+  // std::cout << dest.size() << std::endl;
+  for (int i = 0; i < stream.size(); ++i)
+  {
+    std::wcout << stream[i] << std::endl;
+  }
+  
+  // std::wcout << dest << std::endl;
+
+  // std::wcout << dest[3] << std::endl;
+  // Transfer<LangType> transfer(dest);
+  // auto sentences = transfer.Transcode();
+
+  // for (auto&& sentnece : sentences)
+  // {
+  //   std::cout << sentnece.GetText() << std::endl;
+  // }
   // Set texts
-  double thereshold = 35;
-  PrepareSentenceJP();
-  PrepareEmbedding();
+  // double thereshold = 35;
+  // PrepareSentenceJP();
+  // PrepareEmbedding();
 
-  SegmentationContainer<UndirectedGraph<LangType>, VectorDim, LangType> seg(s, em);
+  // SegmentationContainer<UndirectedGraph<LangType>, VectorDim, LangType> seg(s, em);
 
-  seg.SetThreshold(thereshold);
-  seg.SetGraph();
-  seg.Segmentation();
+  // seg.SetThreshold(thereshold);
+  // seg.SetGraph();
+  // seg.Segmentation();
   
   // auto segments = sg.GetSegment();
 

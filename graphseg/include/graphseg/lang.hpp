@@ -18,6 +18,15 @@ namespace GraphSeg
     JP
   };
 
+  template <Lang LangType>
+  std::string Locale()
+  {
+    if constexpr (LangType == Lang::JP)
+    {
+      return "ja_JP.UTF-8";
+    }
+  }
+
   template <Lang LangType = Lang::EN>
   class I18NFactory
   {
@@ -50,24 +59,6 @@ namespace GraphSeg
         return home + "/.pyenv/shims/python" + " " + home + "/graphseg-cpp/script/en";
       }
     }
-
-    /// <summary>
-    /// convert input text to internal sentence object
-    /// # Deliminator
-    /// </summary>
-    // static std::vector<Sentence<LangType>> TextConverter(const std::string& str)
-    // {
-    //   std::vector<Sentence<LangType>> sentences;
-    //   if constexpr (LangType == Lang::JP)
-    //   {
-
-    //   }
-    //   else
-    //   {
-        
-    //   }
-    //   return sentences;
-    // }
   };
 }
 

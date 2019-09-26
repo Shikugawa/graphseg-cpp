@@ -1,6 +1,7 @@
 #ifndef GRAPHSEG_CPP_GRAPHSEG_INTERNAL_UTIL_EXEC_HPP
 #define GRAPHSEG_CPP_GRAPHSEG_INTERNAL_UTIL_EXEC_HPP
 
+#include <string>
 #include <memory>
 #include <array>
 #include <cstdio>
@@ -8,7 +9,7 @@
 
 namespace GraphSeg::internal::utils
 {
-  using std::array, std::shared_ptr;
+  using std::array, std::shared_ptr, std::string;
 
   static constexpr auto BUFFER_SIZE = 256;
   

@@ -3,6 +3,9 @@
 
 #include "graphseg/lang.hpp"
 #include "graphseg/sentence.hpp"
+#include "graphseg/text_stream.hpp"
+
+#include <cstring>
 
 namespace GraphSeg
 {
@@ -11,22 +14,23 @@ namespace GraphSeg
   template <Lang LangType>
   class Transfer
   {
-    template <class T>
+    template <Lang T>
     static constexpr auto false_v = false;
-    static_assert(false_v<T>, "Specified Transfer is not implemented");
+    static_assert(false_v<LangType>, "Specified Transfer is not implemented");
   };
 
   template <>
   class Transfer<Lang::JP>
   {
-
+  public:
     Transfer(const wstring& _article) : article(_article)
     {
     }
 
+  private:
     void ParseBlackBracket()
     {
-      while (article.at(current_idx) != (wchar_t)L"】")
+      while (article.at(current_idx) != L'】')
       {
         ++current_idx;
       }
@@ -34,7 +38,7 @@ namespace GraphSeg
 
     void ParseBracket()
     {
-      while (article.at(current_idx) != (wchar_t)L"）")
+      while (article.at(current_idx) != L'）')
       {
         ++current_idx;
       }
@@ -42,43 +46,48 @@ namespace GraphSeg
 
     void ParseAngleBracket()
     {
-      while (article.at(current_idx) != (wchar_t)L"」")
+      while (article.at(current_idx) != L'」')
       {
         current_sentence += article.at(current_idx);
         ++current_idx;
       }
     }
 
-    vector<Sentence<Lang::JP>> Transcoder()
+  public:
+    const vector<Sentence<Lang::JP>> Transcode()
     {
       vector<Sentence<Lang::JP>> sentences;
       while (current_idx < article.size())
       {
+        // std::wcout << current_sentence << std::endl;
         // カッコは基本的に全角
-        if (article.at(current_idx) == (wchar_t)L"【")
+        if (article.at(current_idx) == L'【')
         {
+          std::cout << "matched" << std::endl;
           ParseBlackBracket();
         } 
-        else if (article.at(current_idx) == (wchar_t)L"（")
+        else if (article.at(current_idx) == L'（')
         {
           ParseBracket();
         }
-        else if (article.at(current_idx) == (wchar_t)L"「")
+        else if (article.at(current_idx) == L'「')
         {
           ++current_idx; // Prevent "「」" insertion to sentence
           ParseAngleBracket();
         }
-        else if (article.at(current_idx) == (wchar_t)L"。") // Sentence deliminator
+        else if (article.at(current_idx) == L'。') // Sentence deliminator
         {
           sentences.emplace_back(Sentence<Lang::JP>(current_sentence));
           current_sentence.clear();
-        } 
+          std::cout << "cleared" << std::endl;
+        }
         else 
         {
           current_sentence += article.at(current_idx);
         }
         current_idx++;
       }
+      return sentences;
     }
 
     std::wstring current_sentence;

@@ -85,20 +85,20 @@ namespace GraphSeg::graph
     return os;
   }
 
-  template <typename CharT, typename Traits, class T>
-  basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, const T& sg)
-  {
-    for(size_t i = 0; i < sg.GetGraphSize(); ++i)
-    {
-      os << i << ": " << sg.GetSentence(i).GetText() << " => " << "{";
-      for(const auto& p: sg[i])
-      {
-        os << "{" << p.first << ", " << p.second << "},";
-      }
-      os << "}" << std::endl;
-    }
-    return os;
-  }
+  // template <typename CharT, typename Traits, class T>
+  // basic_ostream<CharT, Traits>& operator<<(basic_ostream<CharT, Traits>& os, const T& sg)
+  // {
+  //   for(size_t i = 0; i < sg.GetGraphSize(); ++i)
+  //   {
+  //     os << i << ": " << sg.GetSentence(i).GetText() << " => " << "{";
+  //     for(const auto& p: sg[i])
+  //     {
+  //       os << "{" << p.first << ", " << p.second << "},";
+  //     }
+  //     os << "}" << std::endl;
+  //   }
+  //   return os;
+  // }
 }
 
 #endif

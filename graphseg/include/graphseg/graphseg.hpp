@@ -7,5 +7,7 @@
 #include "graphseg/embedding.hpp"
 #include "graphseg/sentence.hpp"
 #include "graphseg/lang.hpp"
+#include "graphseg/transfer.hpp"
+#include "graphseg/text_stream.hpp"
 
 #endif
