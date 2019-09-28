@@ -6,6 +6,7 @@
 #include "graphseg/segmentation_container.hpp"
 #include "graphseg/lang.hpp"
 
+#include <optional>
 #include <type_traits>
 #include <list>
 #include <vector>
@@ -21,11 +22,60 @@
 namespace GraphSeg::internal
 {
   using namespace GraphSeg::internal::utils;
-  using std::list, std::vector, std::tuple, std::shared_ptr;
+  using std::list, std::vector, std::tuple, std::shared_ptr, std::optional;
   using Vertex = unsigned int;
 
+  class SegmentChecker
+  {
+  private:
+    vector<bool> segment_checker;
+
+    void ClearSegmentChecker()
+    {
+      segment_checker.clear();
+    }
+
+  protected:
+    SegmentChecker() = default;
+    
+    optional<bool> CheckSegment(size_t idx)
+    {
+      assert(idx < segment_checker.size());
+      if (segment_checker.size() == 0)
+      {
+        return std::nullopt;
+      }
+      return segment_checker[idx];
+    }
+
+    void Mark(size_t idx) {
+      assert(idx < segment_checker.size() && idx >= 0);
+      segment_checker[idx] = true;
+    }
+
+    void MarkBackward(size_t idx)
+    {
+      assert(idx < segment_checker.size() && idx > 0);
+      Mark(idx);
+      Mark(idx-1);
+    }
+
+    void MarkForward(size_t idx)
+    {
+      assert(idx < segment_checker.size() - 1 && idx >= 0);
+      Mark(idx);
+      Mark(idx+1);
+    }
+
+    void InstantiateSegmentChecker(size_t size)
+    {
+      ClearSegmentChecker();
+      segment_checker.resize(size);
+    }
+  };
+
   template <class Graph, int VectorDim, Lang LangType = Lang::EN>
-  class Segmentable
+  class Segmentable : public SegmentChecker
   {
   public:
     /// <summary>
@@ -38,6 +88,11 @@ namespace GraphSeg::internal
     /// <summary>
     mutable vector<vector<Vertex>> segments;
 
+    /// <summary>
+    /// segment checked flag
+    /// </summary>
+    mutable vector<bool> segment_check;
+
   private:
     /// <summary>
     /// segment graph
@@ -46,9 +101,9 @@ namespace GraphSeg::internal
     shared_ptr<Graph> graph;
 
   public:
-    Segmentable() = default;
+    explicit Segmentable() = default;
 
-    Segmentable(shared_ptr<Graph> g) : graph(g)
+    explicit Segmentable(shared_ptr<Graph> g) : graph(g)
     {}
 
   private:
@@ -91,7 +146,7 @@ namespace GraphSeg::internal
       }
 
       // to avoid searching same segment twice, memory searched segment whether it can merge
-      vector<bool> segment_memo(segments.size(), false);
+      // vector<bool> segment_memo(segments.size(), false);
       vector<vector<Vertex>> next_segment;
 
       for (size_t i = 0; i < segments.size() - 1; ++i)
@@ -99,7 +154,7 @@ namespace GraphSeg::internal
         const auto current_segment = segments[i];
         const auto adjacent_segment = segments[i+1];
 
-        if (segment_memo[i] == true)
+        if (CheckSegment(i) == true)
         {
           continue;
         }
@@ -107,15 +162,14 @@ namespace GraphSeg::internal
         if (IsMergable(current_segment, adjacent_segment))
         {
           vector<Vertex> merged_segment = GetMergedSegment(current_segment, adjacent_segment);
-          segment_memo[i] = true;
-          segment_memo[i+1] = true;
+          MarkForward(i);
 
           // merge if the segment can merge ahead segments
           for(size_t j = 2; i+j < segments.size() && IsMergable(merged_segment, segments[i+j]); ++j)
           {
             const auto offspring_segment = segments[i+j];
             merged_segment = GetMergedSegment(merged_segment, offspring_segment);
-            segment_memo[i+j] = true;
+            Mark(i+j);
           }
 
           next_segment.emplace_back(merged_segment);
@@ -123,18 +177,19 @@ namespace GraphSeg::internal
         else
         {
           next_segment.emplace_back(current_segment);
-          segment_memo[i] = true;
+          Mark(i);
         }
       }
-
-      if (segment_memo[segments.size() - 1] == false)
+      
+      if (CheckSegment(segments.size() - 1) == false)
       {
         const auto segment_last_idx = segments.size() - 1;
-        segment_memo[segment_last_idx] = true;
+        Mark(segment_last_idx);
         next_segment.emplace_back(segments[segment_last_idx]);
       }
 
       segments.clear();
+      InstantiateSegmentChecker(next_segment.size());
       segments = next_segment;
      
 #ifdef DEBUG
@@ -142,7 +197,7 @@ namespace GraphSeg::internal
       std::cout << segments << std::endl;
 #endif
 
-      ConstructInvalidSegment(embedding);
+      ConstructSmallSegment(embedding);
     }
   
   private:
@@ -187,6 +242,8 @@ namespace GraphSeg::internal
         }
         segments.emplace_back(single_segment);
       }
+      
+      InstantiateSegmentChecker(segments.size());
       std::sort(segments.begin(), segments.end());
 
 #ifdef DEBUG
@@ -198,7 +255,7 @@ namespace GraphSeg::internal
     /// <summary>
     /// merge segments that don't have length higher than thereshold
     /// </summary>
-    void ConstructInvalidSegment(const Embedding<VectorDim, LangType>& embedding)
+    void ConstructSmallSegment(const Embedding<VectorDim, LangType>& embedding)
     {
       const auto segment_relatedness = [&embedding, this](const auto& seg1, const auto& seg2)
       {
@@ -217,14 +274,13 @@ namespace GraphSeg::internal
       };
 
       vector<vector<Vertex>> next_segments;
-      vector<bool> check_segment(segments.size(), false);
 
       for (size_t i = 0; i < segments.size() - 1; ++i)
       {
         const auto current_segment = segments[i];
         const auto next_segment = segments[i+1];
 
-        if (check_segment[i] == true)
+        if (CheckSegment(i) == true)
         {
           continue;
         }
@@ -234,8 +290,7 @@ namespace GraphSeg::internal
           if (i == 0) // 最初のセグメントは一個後のものしかマージ対象にならない
           {
             auto merged_segment = GetMergedSegment(current_segment, next_segment);
-            check_segment[i] = true;
-            check_segment[i+1] = true;
+            MarkForward(i);
             next_segments.emplace_back(merged_segment);
           }
           else // その他のセグメントは、セグメント関連度スコアが高いものとマージするようにする
@@ -247,15 +302,13 @@ namespace GraphSeg::internal
             if (before > after)
             {
               auto merged_segment = GetMergedSegment(prev_segment, current_segment);
-              check_segment[i-1] = true;
-              check_segment[i] = true;
+              MarkBackward(i);
               next_segments.emplace_back(merged_segment);
             }
             else
             {
               auto merged_segment = GetMergedSegment(current_segment, next_segment);
-              check_segment[i] = true;
-              check_segment[i+1] = true;
+              MarkForward(i);
               next_segments.emplace_back(merged_segment);
             }
           }
@@ -263,19 +316,20 @@ namespace GraphSeg::internal
         else
         {
           next_segments.emplace_back(current_segment);
-          check_segment[i] = true;
+          Mark(i);
         }
       }
 
       // 最後のセグメントがマージされなかった場合余るので追加
-      if (check_segment[segments.size() - 1] == false)
+      if (CheckSegment(segments.size() - 1) == false)
       {
         const auto last_segment_idx = segments.size() - 1;
-        check_segment[last_segment_idx] = true;
+        Mark(last_segment_idx);
         next_segments.emplace_back(segments[last_segment_idx]);
       }
 
       segments.clear();
+      InstantiateSegmentChecker(next_segments.size());
       segments = next_segments;
 
 #ifdef DEBUG
