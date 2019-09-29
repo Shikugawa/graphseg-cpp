@@ -287,30 +287,45 @@ namespace GraphSeg::internal
 
         if (current_segment.size() < minimum_segment_size)
         {
-          if (i == 0) // 最初のセグメントは一個後のものしかマージ対象にならない
+          if (i == 0) // first indexed segment can merge second indexed that only
           {
             auto merged_segment = GetMergedSegment(current_segment, next_segment);
             MarkForward(i);
             next_segments.emplace_back(merged_segment);
           }
-          else // その他のセグメントは、セグメント関連度スコアが高いものとマージするようにする
+          else
           {
             const auto prev_segment = segments[i-1];
-            auto before = segment_relatedness(current_segment, prev_segment);
-            auto after = segment_relatedness(current_segment, next_segment);
+            vector<Vertex> merged_segment;
 
-            if (before > after)
+            if (!CheckSegment(prev_segment) && !CheckSegment(next_segment))
             {
-              auto merged_segment = GetMergedSegment(prev_segment, current_segment);
+              auto before = segment_relatedness(current_segment, prev_segment);
+              auto after = segment_relatedness(current_segment, next_segment);
+
+              if (before > after)
+              {
+                merged_segment = GetMergedSegment(prev_segment, current_segment);
+                MarkBackward(i);
+              }
+              else
+              {
+                merged_segment = GetMergedSegment(current_segment, next_segment);
+                MarkForward(i);
+              }
+            }
+            else if (!CheckSegment(prev_segment))
+            {
+              merged_segment = GetMergedSegment(prev_segment, current_segment);
               MarkBackward(i);
-              next_segments.emplace_back(merged_segment);
             }
-            else
+            else if (!CheckSegment(next_segment))
             {
-              auto merged_segment = GetMergedSegment(current_segment, next_segment);
-              MarkForward(i);
-              next_segments.emplace_back(merged_segment);
+              merged_segment = GetMergedSegment(current_segment, next_segment);
+              MarkForward(i);  
             }
+            
+            next_segments.emplace_back(merged_segment);
           }
         }
         else
@@ -320,8 +335,8 @@ namespace GraphSeg::internal
         }
       }
 
-      // 最後のセグメントがマージされなかった場合余るので追加
-      if (CheckSegment(segments.size() - 1) == false)
+      // if the last segment was not merged
+      if (!CheckSegment(segments.size() - 1))
       {
         const auto last_segment_idx = segments.size() - 1;
         Mark(last_segment_idx);

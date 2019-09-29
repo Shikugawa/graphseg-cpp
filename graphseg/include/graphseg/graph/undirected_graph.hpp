@@ -69,7 +69,7 @@ namespace GraphSeg::graph
     }
 
     /// <summary>
-    /// グラフの大きさを取得する
+    /// get graph size
     /// </summary>
     inline const Vertex& GetGraphSize() const&
     {
