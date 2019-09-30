@@ -234,11 +234,6 @@ namespace GraphSeg
     }
 
   private:
-    /// <summary>
-    /// sentences
-    /// </summary>    
-    vector<SentenceType> sentences;
-
     const Embedding<VectorDim, LangType>& GetEmbedding()
     {
       return EmbeddingOpr::embedding;
