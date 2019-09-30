@@ -71,6 +71,7 @@ namespace GraphSeg::internal
     {
       ClearSegmentChecker();
       segment_checker.resize(size);
+      segment_checker = vector<bool>(size, false);
     }
   };
 
@@ -297,8 +298,8 @@ namespace GraphSeg::internal
           {
             const auto prev_segment = segments[i-1];
             vector<Vertex> merged_segment;
-
-            if (!CheckSegment(prev_segment) && !CheckSegment(next_segment))
+            std::cout << i << std::endl;
+            if (CheckSegment(i-1) == false && CheckSegment(i+1) == false)
             {
               auto before = segment_relatedness(current_segment, prev_segment);
               auto after = segment_relatedness(current_segment, next_segment);
@@ -314,17 +315,17 @@ namespace GraphSeg::internal
                 MarkForward(i);
               }
             }
-            else if (!CheckSegment(prev_segment))
+            else if (CheckSegment(i-1) == false)
             {
               merged_segment = GetMergedSegment(prev_segment, current_segment);
               MarkBackward(i);
             }
-            else if (!CheckSegment(next_segment))
+            else if (CheckSegment(i+1) == false)
             {
               merged_segment = GetMergedSegment(current_segment, next_segment);
               MarkForward(i);  
             }
-            
+
             next_segments.emplace_back(merged_segment);
           }
         }
