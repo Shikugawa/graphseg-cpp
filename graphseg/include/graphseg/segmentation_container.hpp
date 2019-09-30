@@ -13,32 +13,9 @@ namespace GraphSeg
   using std::vector, std::make_unique, std::shared_ptr, std::make_shared;
 
   template <class Graph, int VectorDim, Lang LangType = Lang::EN>
-  class SegmentationContainer
+  class SegmentOperator
   {
-    using SentenceType = Sentence<LangType>;
-
   public:
-    SegmentationContainer(const vector<SentenceType>& sentences, const Embedding<VectorDim, LangType>& em) 
-      : graph(make_shared<Graph>(sentences)), embedding(em)
-    {}
-
-    SegmentationContainer(vector<SentenceType>&& sentences, const Embedding<VectorDim, LangType>& em) 
-      : graph(make_shared<Graph>(sentences)), embedding(em)
-    {}
-
-    /// <summary>
-    /// Set edge weight threshold in graph. If edge weight is higher than it, both vertex are connected each other (lvalue & rvalue)
-    /// </summary>
-    inline void SetThreshold(const double& thd) noexcept 
-    { 
-      thereshold = thd; 
-    }
-
-    inline void SetThreshold(double&& thd) noexcept 
-    { 
-      thereshold = std::move(thd); 
-    }
-
     /// <summary>
     /// Set edge weight threshold in graph. If edge weight is higher than it, both vertex are connected each other (lvalue & rvalue)
     /// </summary>
@@ -52,19 +29,6 @@ namespace GraphSeg
     { 
       assert(n > 0);
       numberSegment = std::move(n);
-    }
-
-    /// <summary>
-    /// Get graph (lvalue & rvalue)
-    /// </summary>
-    inline Graph& GetGraph() &
-    { 
-      return *graph; 
-    }
-
-    inline Graph&& GetGraph() &&
-    {
-      return std::move(*graph);
     }
 
     /// <summary>
@@ -100,6 +64,38 @@ namespace GraphSeg
       return std::move(segmentable->segments);
     }
 
+  protected:
+    /// <summary>
+    /// entity of segmentation operation 
+    /// </summary>
+    unique_ptr<internal::Segmentable<Graph, VectorDim, LangType>> segmentable;
+
+    /// <summary>
+    /// number of segments
+    /// </summary>
+    size_t numberSegment = 0;
+  };
+  
+  template <int VectorDim, Lang LangType = Lang::EN>
+  class EmbeddingOperator
+  {
+  protected:
+    EmbeddingOperator(const Embedding<VectorDim, LangType>& _embedding) : embedding(_embedding)
+    {}
+
+    EmbeddingOperator(Embedding<VectorDim, LangType>&& _embedding) : embedding(std::move(_embedding))
+    {}
+
+    /// <summary>
+    /// Embedding information extracted from input sentences
+    /// </summary>
+    Embedding<VectorDim, LangType> embedding;
+  };
+
+  template <class T, class Graph>
+  class GraphOperator
+  {
+  public:
     /// <summary>
     /// Sentence graph instantiation
     /// </summary>
@@ -110,16 +106,47 @@ namespace GraphSeg
     }
 
     /// <summary>
-    /// Execute segmentation
+    /// Set edge weight threshold in graph. If edge weight is higher than it, both vertex are connected each other (lvalue & rvalue)
     /// </summary>
-    void Segmentation()
+    inline void SetThreshold(const double& thd) noexcept 
+    { 
+      thereshold = thd; 
+    }
+
+    inline void SetThreshold(double&& thd) noexcept 
+    { 
+      thereshold = std::move(thd); 
+    }
+
+    /// <summary>
+    /// Get graph (lvalue & rvalue)
+    /// </summary>
+    inline Graph& GetGraph() &
+    { 
+      return *graph; 
+    }
+
+    inline Graph&& GetGraph() &&
     {
-      segmentable = make_unique<internal::Segmentable<Graph, VectorDim, LangType>>(graph);
-      graph->SetMaximumClique();
-      segmentable->ConstructSegment(embedding);
+      return std::move(*graph);
     }
 
   private:
+    const T& Derived() const& 
+    {
+      return static_cast<const T&>(*this);
+    }
+
+    T& Derived() & 
+    {
+      return static_cast<T&>(*this);
+    }
+
+    T&& Derived() && 
+    {
+      return static_cast<T&&>(*this);
+    }
+
     /// <summary>
     /// Set sentence to graph vertex
     /// </summary>
@@ -144,7 +171,7 @@ namespace GraphSeg
           {
             continue;
           }
-          const auto similarity = embedding.GetSimilarity(graph->GetSentence(i), graph->GetSentence(j));
+          const auto similarity = Derived().GetEmbedding().GetSimilarity(graph->GetSentence(i), graph->GetSentence(j));
           #ifdef DEBUG
             std::cout << "sentence 1: " << graph->GetSentence(i).GetText() << std::endl;
             std::cout << "sentence 2: " << graph->GetSentence(j).GetText() << std::endl;
@@ -161,26 +188,9 @@ namespace GraphSeg
       }
     }
 
-    /// <summary>
-    /// thershold whether connect nodes each other
-    /// if node similarity is lower than thershold, these are not connected
-    /// </summary>
-    double thereshold;
-
-    /// <summary>
-    /// number of segments
-    /// </summary>
-    size_t numberSegment = 0;
-
-    /// <summary>
-    /// sentences
-    /// </summary>    
-    vector<SentenceType> sentences;
-
-    /// <summary>
-    /// Embedding information extracted from input sentences
-    /// </summary>
-    Embedding<VectorDim, LangType> embedding;
+  protected:
+    GraphOperator(shared_ptr<Graph> _graph) : graph(_graph)
+    {}
 
     /// <summary>
     /// sentence graph
@@ -188,9 +198,53 @@ namespace GraphSeg
     shared_ptr<Graph> graph;
 
     /// <summary>
-    /// entity of segmentation operation 
+    /// thershold whether connect nodes each other
+    /// if node similarity is lower than thershold, these are not connected
     /// </summary>
-    unique_ptr<internal::Segmentable<Graph, VectorDim, LangType>> segmentable;
+    double thereshold;
+  };
+
+  template <class Graph, int VectorDim, Lang LangType = Lang::EN>
+  class SegmentationContainer : public SegmentOperator<Graph, VectorDim, LangType>,
+                                public EmbeddingOperator<VectorDim, LangType>,
+                                public GraphOperator<SegmentationContainer<Graph, VectorDim, LangType>, Graph>
+  {
+    using SegmentOpr = SegmentOperator<Graph, VectorDim, LangType>;
+    using GraphOpr = GraphOperator<SegmentationContainer<Graph, VectorDim, LangType>, Graph>;
+    using EmbeddingOpr = EmbeddingOperator<VectorDim, LangType>;
+    using SentenceType = Sentence<LangType>;
+
+  public:
+    SegmentationContainer(const vector<SentenceType>& sentences, const Embedding<VectorDim, LangType>& em)
+      : GraphOpr(make_shared<Graph>(sentences)), EmbeddingOpr(em)
+    {}
+
+    SegmentationContainer(vector<SentenceType>&& sentences, const Embedding<VectorDim, LangType>& em) 
+      : GraphOpr(make_shared<Graph>(sentences)), EmbeddingOpr(em)
+    {}
+
+    /// <summary>
+    /// Execute segmentation
+    /// </summary>
+    void Segmentation()
+    {
+      SegmentOpr::segmentable = make_unique<internal::Segmentable<Graph, VectorDim, LangType>>(GraphOpr::graph);
+      GraphOpr::graph->SetMaximumClique();
+      SegmentOpr::segmentable->ConstructSegment(GetEmbedding());
+    }
+
+  private:
+    /// <summary>
+    /// sentences
+    /// </summary>    
+    vector<SentenceType> sentences;
+
+    const Embedding<VectorDim, LangType>& GetEmbedding()
+    {
+      return EmbeddingOpr::embedding;
+    }
+
+    friend GraphOpr;
   };
 }
 

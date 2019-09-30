@@ -298,7 +298,7 @@ namespace GraphSeg::internal
           {
             const auto prev_segment = segments[i-1];
             vector<Vertex> merged_segment;
-            std::cout << i << std::endl;
+
             if (CheckSegment(i-1) == false && CheckSegment(i+1) == false)
             {
               auto before = segment_relatedness(current_segment, prev_segment);
