@@ -1,7 +1,7 @@
 #ifndef GRAPHSEG_CPP_GRAPHSEG_EMBEDDING_HPP
 #define GRAPHSEG_CPP_GRAPHSEG_EMBEDDING_HPP
 
-#include "graphseg/lang.hpp"
+#include "graphseg/language.hpp"
 #include "graphseg/sentence.hpp"
 #include "graphseg/internal/utils/exec.hpp"
 #include "graphseg/internal/frequency.hpp"
@@ -22,9 +22,10 @@ namespace GraphSeg
         std::pow, std::tuple, std::get, std::make_tuple, std::unique_ptr;
 
   template <int VectorDim, Lang LangType = Lang::EN>
-  class Embedding
+  class Embedding : public Executable<LangType>
   {
   public:
+    using Base = Executable<LangType>;
     using SentenceType = Sentence<LangType>;
     using WordEmbedding = array<double, VectorDim>;
 
@@ -33,7 +34,7 @@ namespace GraphSeg
     /// <summary>
     /// Preprocess to retrieve embeddings from terms in sentences
     /// </summary>
-    void AddSentenceWords(SentenceType& s)
+    void AddSentenceWords(const SentenceType& s)
     {
       for (const auto& term: s)
       {
@@ -49,7 +50,7 @@ namespace GraphSeg
       }
     }
 
-    void AddSentenceWords(SentenceType&& s)
+    void AddSentenceWords(const SentenceType&& s)
     {
       for (auto&& term: std::move(s))
       {
@@ -72,7 +73,7 @@ namespace GraphSeg
     {
       int code;
       const string term_stream = GetTermStream();
-      const string cmd = "echo " +  term_stream + " | " + I18NFactory<LangType>::CommandBaseExtractor() + "/vectorizer.py";
+      const string cmd = "echo " +  term_stream + " | " + Base::CommandBaseExtractor() + "/vectorizer.py";
       auto result = utils::exec(cmd.c_str(), code);
       Document doc;
       const auto parse_result = doc.Parse(result.c_str()).HasParseError();

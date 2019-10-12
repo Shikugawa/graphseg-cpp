@@ -4,7 +4,7 @@
 #include "graphseg/internal/utils/custom_operator.hpp"
 #include "graphseg/embedding.hpp"
 #include "graphseg/segmentation_container.hpp"
-#include "graphseg/lang.hpp"
+#include "graphseg/language.hpp"
 
 #include <optional>
 #include <type_traits>

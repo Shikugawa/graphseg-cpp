@@ -1,9 +1,9 @@
 #ifndef GRAPHSEG_CPP_GRAPHSEG_TRANSFER_HPP
 #define GRAPHSEG_CPP_GRAPHSEG_TRANSFER_HPP
 
-#include "graphseg/lang.hpp"
+#include "graphseg/language.hpp"
 #include "graphseg/sentence.hpp"
-#include "graphseg/text_stream.hpp"
+#include "graphseg/text_processor.hpp"
 
 #include <cstring>
 
@@ -54,9 +54,9 @@ namespace GraphSeg
     }
 
   public:
-    const vector<Sentence<Lang::JP>> Transcode()
+    const vector<std::wstring> Transcode()
     {
-      vector<Sentence<Lang::JP>> sentences;
+      vector<std::wstring> sentences;
       while (current_idx < article.size())
       {
         // カッコは基本的に全角
@@ -75,7 +75,7 @@ namespace GraphSeg
         }
         else if (article.at(current_idx) == L'。') // Sentence deliminator
         {
-          sentences.emplace_back(Sentence<Lang::JP>(current_sentence));
+          sentences.emplace_back(current_sentence);
           current_sentence.clear();
         }
         else 

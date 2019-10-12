@@ -4,7 +4,7 @@
 #include "graphseg/graph/undirected_graph.hpp"
 #include "graphseg/embedding.hpp"
 #include "graphseg/sentence.hpp"
-#include "graphseg/lang.hpp"
+#include "graphseg/language.hpp"
 #include "graphseg/internal/segmentable.hpp"
 
 namespace GraphSeg

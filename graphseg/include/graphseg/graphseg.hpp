@@ -6,8 +6,8 @@
 #include "graphseg/segmentation_container.hpp"
 #include "graphseg/embedding.hpp"
 #include "graphseg/sentence.hpp"
-#include "graphseg/lang.hpp"
+#include "graphseg/language.hpp"
 #include "graphseg/transfer.hpp"
-#include "graphseg/text_stream.hpp"
+#include "graphseg/text_processor.hpp"
 
 #endif

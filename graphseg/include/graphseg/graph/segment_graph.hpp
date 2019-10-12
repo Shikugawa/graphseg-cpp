@@ -2,7 +2,7 @@
 #define GRAPHSEG_CPP_GRAPHSEG_GRAPH_SEGMENT_GRAPH_HPP 
 
 #include "graphseg/sentence.hpp"
-#include "graphseg/lang.hpp"
+#include "graphseg/language.hpp"
 
 #include <vector>
 

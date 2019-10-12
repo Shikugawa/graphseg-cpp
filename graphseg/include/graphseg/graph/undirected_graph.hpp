@@ -3,7 +3,7 @@
 
 #include "graphseg/internal/utils/nameof.hpp"
 #include "graphseg/graph/segment_graph.hpp"
-#include "graphseg/lang.hpp"
+#include "graphseg/language.hpp"
 #include "graphseg/internal/utils/custom_operator.hpp"
 
 #include <set>

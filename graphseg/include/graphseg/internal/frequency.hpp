@@ -2,7 +2,7 @@
 #define GRAPHSEG_CPP_GRAPHSEG_INTERNAL_FREQUENCY_HPP
 
 #include "graphseg/internal/utils/exec.hpp"
-#include "graphseg/lang.hpp"
+#include "graphseg/language.hpp"
 
 #include <string>
 #include <utility>
@@ -18,15 +18,16 @@ namespace GraphSeg::internal
   using namespace rapidjson;
 
   template <Lang LangType = Lang::EN>
-  class Frequency
+  class Frequency : public Executable<LangType>
   {
+    using Base = Executable<LangType>;
   public:
-    Frequency(const string& stream)
+    explicit Frequency(const string& stream)
     {
       AddFrequency(std::forward<const string>(stream));
     }
 
-    Frequency(string&& stream)
+    explicit Frequency(string&& stream)
     {
       AddFrequency(std::forward<string&&>(stream));
     }
@@ -60,7 +61,7 @@ namespace GraphSeg::internal
     void AddFrequency(T&& stream)
     {
       int code;
-      const string cmd = "echo " + stream + " | " + I18NFactory<LangType>::CommandBaseExtractor() + "/frequency.py";
+      const string cmd = "echo " + stream + " | " + Base::CommandBaseExtractor() + "/frequency.py";
       auto result = utils::exec(cmd.c_str(), code);
       Document doc;
       const auto parse_result = doc.Parse(result.c_str()).HasParseError();

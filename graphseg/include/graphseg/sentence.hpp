@@ -2,7 +2,7 @@
 #define GRAPHSEG_CPP_GRAPHSEG_SENTENCE_HPP
 
 #include "graphseg/internal/utils/mecab_helper.hpp"
-#include "graphseg/lang.hpp"
+#include "graphseg/language.hpp"
 
 #include <codecvt>
 #include <type_traits>
@@ -25,27 +25,21 @@ namespace GraphSeg
     vector<char> deliminator_set;
 
   public:
-    Sentence(wstring&& s)
+    Sentence(string&& s) : sentence(std::move(s))
     {
-      // TODO: deprecated
-      std::wstring_convert<std::codecvt_utf8<wchar_t>,wchar_t> cv;
       deliminator_set.emplace_back(' ');
-      sentence = I18NFactory<LangType>::SentenceTagger()(cv.to_bytes(s));
       CreateTerm();
     }
 
-    Sentence(const wstring& s)
+    Sentence(const string& s) : sentence(s)
     {
-      // TODO: deprecated
-      std::wstring_convert<std::codecvt_utf8<wchar_t>,wchar_t> cv;
       deliminator_set.emplace_back(' ');
-      sentence = I18NFactory<LangType>::SentenceTagger()(std::move(cv.to_bytes(s)));
       CreateTerm();
     }
 
-    inline iterator begin() noexcept 
+    inline const_iterator begin() const noexcept 
     { 
-      return terms.begin(); 
+      return terms.cbegin(); 
     }
     
     inline const_iterator cbegin() const noexcept 
@@ -53,9 +47,9 @@ namespace GraphSeg
       return terms.cbegin(); 
     }
     
-    inline iterator end() noexcept 
+    inline const_iterator end() const noexcept 
     { 
-      return terms.end(); 
+      return terms.cend(); 
     }
     
     inline const_iterator cend() const noexcept 

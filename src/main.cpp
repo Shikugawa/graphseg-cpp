@@ -26,20 +26,17 @@ int main()
 
   const std::string home = getenv("HOME");
   std::string dataPath = home + "/graphseg-cpp/data/article01.txt";
-  auto stream = TextTransform<LangType>(dataPath);
-
+  
+  TextProcessor<LangType> tp(dataPath);
   Embedding<VectorDim, LangType> em;
-
-  Transfer<LangType> transfer(stream);
-  auto sentences = transfer.Transcode();
-
-  for(auto& sentence: sentences)
+  
+  for(auto& sentence: tp.GetSentences())
   {
     em.AddSentenceWords(sentence);
   }
   em.GetWordEmbeddings();
 
-  for (auto&& sentnece : sentences)
+  for (const auto& sentnece : tp.GetSentences())
   {
     std::cout << sentnece.GetText() << std::endl;
   }
@@ -47,7 +44,8 @@ int main()
   // Set texts
   double thereshold = 300;
   
-  SegmentationContainer<UndirectedGraph<LangType>, VectorDim, LangType> seg(sentences, em);
+  SegmentationContainer<UndirectedGraph<LangType>, VectorDim, LangType> seg(
+    tp.GetSentences(), em);
 
   seg.SetThreshold(thereshold);
   seg.SetGraph();
