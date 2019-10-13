@@ -3,7 +3,7 @@
 
 #include "graphseg/language.hpp"
 #include "graphseg/sentence.hpp"
-#include "graphseg/transfer.hpp"
+#include "graphseg/article_processor.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -62,8 +62,8 @@ namespace GraphSeg
 
     vector<wstring> TextTranscoder()
     {
-      auto transfer = Transfer<LangType>(wText);
-      return transfer.Transcode();
+      auto processor = ArticleProcessor<LangType>(wText);
+      return processor.Execute();
     }
   };
 }

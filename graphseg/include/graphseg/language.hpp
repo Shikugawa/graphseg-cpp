@@ -7,6 +7,7 @@
 #include <type_traits>
 #include <functional>
 #include <string>
+#include <unordered_map>
 #include <mecab.h>
 
 namespace GraphSeg

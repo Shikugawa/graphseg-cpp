@@ -1,9 +1,7 @@
-#ifndef GRAPHSEG_CPP_GRAPHSEG_TRANSFER_HPP
-#define GRAPHSEG_CPP_GRAPHSEG_TRANSFER_HPP
+#ifndef GRAPHSEG_CPP_GRAPHSEG_ARTICLEPROCESSOR_HPP
+#define GRAPHSEG_CPP_GRAPHSEG_ARTICLEPROCESSOR_HPP
 
 #include "graphseg/language.hpp"
-#include "graphseg/sentence.hpp"
-#include "graphseg/text_processor.hpp"
 
 #include <cstring>
 
@@ -12,23 +10,23 @@ namespace GraphSeg
   using std::vector, std::wstring;
 
   template <Lang LangType>
-  class Transfer
+  class ArticleProcessor
   {
     template <Lang T>
     static constexpr auto false_v = false;
-    static_assert(false_v<LangType>, "Specified Transfer is not implemented");
+    static_assert(false_v<LangType>, "Specified ArticleProcessor is not implemented");
   };
 
   template <>
-  class Transfer<Lang::JP>
+  class ArticleProcessor<Lang::JP>
   {
   public:
-    Transfer(const wstring& _article) : article(_article)
+    ArticleProcessor(const wstring& _article) : article(_article)
     {
     }
 
   private:
-    void ParseBlackBracket()
+    void BlockBracket()
     {
       while (article.at(current_idx) != L'】')
       {
@@ -36,7 +34,7 @@ namespace GraphSeg
       }
     }
 
-    void ParseBracket()
+    void RoundBracket()
     {
       while (article.at(current_idx) != L'）')
       {
@@ -44,7 +42,7 @@ namespace GraphSeg
       }
     }
 
-    void ParseAngleBracket()
+    void AngleBracket()
     {
       while (article.at(current_idx) != L'」')
       {
@@ -54,7 +52,7 @@ namespace GraphSeg
     }
 
   public:
-    const vector<std::wstring> Transcode()
+    const vector<std::wstring> Execute()
     {
       vector<std::wstring> sentences;
       while (current_idx < article.size())
@@ -62,16 +60,16 @@ namespace GraphSeg
         // カッコは基本的に全角
         if (article.at(current_idx) == L'【')
         {
-          ParseBlackBracket();
+          BlockBracket();
         } 
         else if (article.at(current_idx) == L'（')
         {
-          ParseBracket();
+          RoundBracket();
         }
         else if (article.at(current_idx) == L'「')
         {
           ++current_idx; // Prevent "「」" insertion to sentence
-          ParseAngleBracket();
+          AngleBracket();
         }
         else if (article.at(current_idx) == L'。') // Sentence deliminator
         {
@@ -93,7 +91,7 @@ namespace GraphSeg
   };
 
   template <>
-  class Transfer<Lang::EN>
+  class ArticleProcessor<Lang::EN>
   {};
 } // namespace GraphSeg
 
