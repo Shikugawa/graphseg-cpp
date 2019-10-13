@@ -1,7 +1,6 @@
 #ifndef GRAPHSEG_CPP_GRAPHSEG_INTERNAL_FREQUENCY_HPP
 #define GRAPHSEG_CPP_GRAPHSEG_INTERNAL_FREQUENCY_HPP
 
-#include "graphseg/internal/utils/exec.hpp"
 #include "graphseg/language.hpp"
 
 #include <string>
@@ -60,9 +59,7 @@ namespace GraphSeg::internal
     template <typename T, typename = enable_if_t<is_same_v<string, std::remove_cv_t<T>>>*>
     void AddFrequency(T&& stream)
     {
-      int code;
-      const string cmd = "echo " + stream + " | " + Base::CommandBaseExtractor() + "/frequency.py";
-      auto result = utils::exec(cmd.c_str(), code);
+      auto result = Base::Execute("frequency.py", stream);
       Document doc;
       const auto parse_result = doc.Parse(result.c_str()).HasParseError();
       assert(parse_result == false);

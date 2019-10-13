@@ -71,10 +71,8 @@ namespace GraphSeg
     /// </summary>
     void GetWordEmbeddings()
     {
-      int code;
       const string term_stream = GetTermStream();
-      const string cmd = "echo " +  term_stream + " | " + Base::CommandBaseExtractor() + "/vectorizer.py";
-      auto result = utils::exec(cmd.c_str(), code);
+      auto result = Base::Execute("vectorizer.py", term_stream);
       Document doc;
       const auto parse_result = doc.Parse(result.c_str()).HasParseError();
       assert(parse_result == false);

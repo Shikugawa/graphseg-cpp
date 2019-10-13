@@ -2,7 +2,9 @@
 #define GRAPHSEG_CPP_GRAPHSEG_LANG_HPP
 
 #include "graphseg/internal/utils/mecab_helper.hpp"
+#include "graphseg/internal/utils/exec.hpp"
 
+#include <filesystem>
 #include <iostream>
 #include <type_traits>
 #include <functional>
@@ -45,23 +47,110 @@ namespace GraphSeg
     }
   };
 
+  
   template <Lang LangType = Lang::EN>
   class Executable
   {
+    template <Lang T>
+    static constexpr auto false_v = false;
+    static_assert(false_v<LangType>, "Specified ArticleProcessor is not implemented");
+  };
+
+  template <>
+  class Executable<Lang::JP> // I think that template specialization is better than if constexpr
+  {
   protected:
+    std::string Execute(const std::string& script, const std::string& input) 
+    {
+      if (!ScriptExistence(ScriptPathExtractor(), script)) {
+        std::runtime_error(ScriptPathExtractor() + "/" + script + " doe's not exist");
+      }
+
+      int code;
+      const std::string cmd = "echo " + input + " | " + CommandBaseExtractor() + "/" + script;
+      auto result = internal::utils::exec(cmd.c_str(), code);
+      return result;
+    }
+
+  private:
     std::string CommandBaseExtractor()
     {
-      const std::string home = getenv("HOME");
-      if constexpr (LangType == Lang::JP)
-      {
-        return home + "/.pyenv/shims/python" + " " + home + "/graphseg-cpp/script/jp";
+      return PythonPathExtractor() + " " + ScriptPathExtractor();
+    }
+
+    std::string ScriptPathExtractor()
+    {
+      const std::string scriptPath = getenv("PY_SCRIPT_PATH");
+      assert(scriptPath.size() != 0);
+      return scriptPath + "/jp";
+    }
+
+    std::string PythonPathExtractor()
+    {
+      const std::string pythonPath = getenv("PYTHON_PATH");  
+      assert(pythonPath.size() != 0);
+      return pythonPath;
+    }
+
+    bool ScriptExistence(const std::string& path, const std::string& script)
+    {
+      for (const auto& x : std::filesystem::directory_iterator(path)) {
+        if (path + "/" + script == x.path())
+        {
+          return true;
+        }
       }
-      else
-      {
-        return home + "/.pyenv/shims/python" + " " + home + "/graphseg-cpp/script/en";
-      }
+      return false;
     }
   };
+
+  template <>
+  class Executable<Lang::EN>
+  {
+  protected:
+    std::string Execute(const std::string& script, const std::string& input) 
+    {
+      if (!ScriptExistence(ScriptPathExtractor(), script)) {
+        std::runtime_error(ScriptPathExtractor() + "/" + script + " doe's not exist");
+      }
+
+      int code;
+      const std::string cmd = "echo " + input + " | " + CommandBaseExtractor() + "/" + script;
+      auto result = internal::utils::exec(cmd.c_str(), code);
+      return result;
+    }
+
+  private:
+    std::string CommandBaseExtractor()
+    {
+      return PythonPathExtractor() + " " + ScriptPathExtractor();
+    }
+
+    std::string ScriptPathExtractor()
+    {
+      const std::string scriptPath = getenv("PY_SCRIPT_PATH");
+      assert(scriptPath.size() != 0);
+      return scriptPath + "/en";
+    }
+
+    std::string PythonPathExtractor()
+    {
+      const std::string pythonPath = getenv("PYTHON_PATH");  
+      assert(pythonPath.size() != 0);
+      return pythonPath;
+    }
+
+    bool ScriptExistence(const std::string& path, const std::string& script)
+    {
+      for (const auto& x : std::filesystem::directory_iterator(path)) {
+        if (path + "/" + script == x.path())
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+  }; 
 }
 
 #endif
