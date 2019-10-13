@@ -24,8 +24,13 @@ nltk.data.path
 ```
 
 ### Example
+```PY_SCRIPT_PATH``` and ```PYTHON_PATH``` is needed
 
+```sh
+PY_SCRIPT_PATH=${HOME}/graphseg-cpp/script PYTHON_PATH=${HOME}/.pyenv/shims/python ./graphseg_main
 ```
+
+```cpp
 #define DEBUG
 
 #include "graphseg/graphseg.hpp"
