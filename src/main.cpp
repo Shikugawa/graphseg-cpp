@@ -51,5 +51,12 @@ int main()
   seg.SetGraph();
   seg.Segmentation();
   
+  for (const auto& segment : seg.GetSegment())
+  {
+    for (const auto& sentence_idx : segment)
+    {
+      std::cout << tp.GetSentences().at(sentence_idx).GetText() << std::endl;
+    }
+  }
   return 0;
 }
