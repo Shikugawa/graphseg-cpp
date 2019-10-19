@@ -34,25 +34,11 @@ namespace GraphSeg
     /// <summary>
     /// Preprocess to retrieve embeddings from terms in sentences
     /// </summary>
-    void AddSentenceWords(const SentenceType& s)
+    template <class T, std::enable_if_t<std::is_same_v<std::remove_reference_t<T>, const SentenceType>>* = nullptr>
+    void AddSentenceWords(T&& s)
     {
-      for (const auto& term: s)
-      {
-        if (!exists(term))
-        {
-          ++termLength;
-          InitWordEmbedding(term);
-        }
-        else
-        {
-          ++get<1>(words[term]);
-        }
-      }
-    }
-
-    void AddSentenceWords(const SentenceType&& s)
-    {
-      for (auto&& term: std::move(s))
+      auto tmp = std::forward<T>(s);
+      for (const auto& term: tmp)
       {
         if (!exists(term))
         {

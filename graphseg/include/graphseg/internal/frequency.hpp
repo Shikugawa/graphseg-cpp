@@ -23,12 +23,12 @@ namespace GraphSeg::internal
   public:
     explicit Frequency(const string& stream)
     {
-      AddFrequency(std::forward<const string>(stream));
+      AddFrequency(stream);
     }
 
     explicit Frequency(string&& stream)
     {
-      AddFrequency(std::forward<string&&>(stream));
+      AddFrequency(std::move(stream));
     }
 
     /// <summary>
@@ -56,10 +56,10 @@ namespace GraphSeg::internal
     }
 
   private:
-    template <typename T, typename = enable_if_t<is_same_v<string, std::remove_cv_t<T>>>*>
+    template <typename T, enable_if_t<is_same_v<string, std::decay_t<T>>>* = nullptr>
     void AddFrequency(T&& stream)
     {
-      auto result = Base::Execute("frequency.py", stream);
+      auto result = Base::Execute("frequency.py", std::forward<T>(stream));
       Document doc;
       const auto parse_result = doc.Parse(result.c_str()).HasParseError();
       assert(parse_result == false);

@@ -30,7 +30,7 @@ int main()
   TextProcessor<LangType> tp(dataPath);
   Embedding<VectorDim, LangType> em;
   
-  for(auto& sentence: tp.GetSentences())
+  for(const auto& sentence: tp.GetSentences())
   {
     em.AddSentenceWords(sentence);
   }

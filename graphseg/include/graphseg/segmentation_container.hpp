@@ -17,18 +17,12 @@ namespace GraphSeg
   {
   public:
     /// <summary>
-    /// Set edge weight threshold in graph. If edge weight is higher than it, both vertex are connected each other (lvalue & rvalue)
+    /// Set edge weight threshold in graph. If edge weight is higher than it, both vertex are connected each other
     /// </summary>
-    inline void SetNumberSegment(const size_t& n) noexcept 
-    {
-      assert(n > 0);
-      numberSegment = n;
-    }
-
-    inline void SetNumberSegment(size_t&& n) noexcept 
+    inline void SetNumberSegment(size_t n) noexcept 
     { 
       assert(n > 0);
-      numberSegment = std::move(n);
+      numberSegment = n;
     }
 
     /// <summary>
@@ -106,16 +100,11 @@ namespace GraphSeg
     }
 
     /// <summary>
-    /// Set edge weight threshold in graph. If edge weight is higher than it, both vertex are connected each other (lvalue & rvalue)
+    /// Set edge weight threshold in graph. If edge weight is higher than it, both vertex are connected each other
     /// </summary>
-    inline void SetThreshold(const double& thd) noexcept 
+    inline void SetThreshold(double thd) noexcept 
     { 
       thereshold = thd; 
-    }
-
-    inline void SetThreshold(double&& thd) noexcept 
-    { 
-      thereshold = std::move(thd); 
     }
 
     /// <summary>
