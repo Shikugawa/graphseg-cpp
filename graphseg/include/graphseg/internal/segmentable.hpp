@@ -2,6 +2,7 @@
 #define GRAPHSEG_CPP_GRAPHSEG_SEGMENTABLE_HPP
 
 #include "graphseg/internal/utils/custom_operator.hpp"
+#include "graphseg/internal/segment_state.hpp"
 #include "graphseg/embedding.hpp"
 #include "graphseg/segmentation_container.hpp"
 #include "graphseg/language.hpp"
@@ -9,6 +10,7 @@
 #include <optional>
 #include <type_traits>
 #include <list>
+#include <stdexcept>
 #include <vector>
 #include <set>
 #include <tuple>
@@ -18,6 +20,8 @@
 #ifdef DEBUG
 #include <spdlog/spdlog.h>
 #endif
+
+#define NOT_DEFINED -1
 
 namespace GraphSeg::internal
 {
@@ -85,14 +89,29 @@ namespace GraphSeg::internal
     size_t minimum_segment_size = 2;
 
     /// <summary>
+    /// needed segment size
+    /// </summary>
+    size_t needed_segment_size = NOT_DEFINED;
+
+    /// <summary>
     /// calculated segments
     /// <summary>
     mutable vector<vector<Vertex>> segments;
 
     /// <summary>
+    /// prev state segments
+    /// </summary>
+    mutable vector<vector<Vertex>> old_segments;    
+
+    /// <summary>
     /// segment checked flag
     /// </summary>
     mutable vector<bool> segment_check;
+
+    /// <summary>
+    /// current segment state
+    /// </summary>
+    mutable GraphSeg::SegmentStatus current_status{GraphSeg::SegmentStatus::NONE};
 
   private:
     /// <summary>
@@ -141,64 +160,44 @@ namespace GraphSeg::internal
     /// </summary>
     void ConstructSegment(const Embedding<VectorDim, LangType>& embedding)
     {
-      if (segments.size() == 0)
+      while (current_status != GraphSeg::SegmentStatus::TERMINATED)
       {
-        ConstructInitSegment();
-      }
-
-      // to avoid searching same segment twice, memory searched segment whether it can merge
-      // vector<bool> segment_memo(segments.size(), false);
-      vector<vector<Vertex>> next_segment;
-
-      for (size_t i = 0; i < segments.size() - 1; ++i)
-      {
-        const auto current_segment = segments[i];
-        const auto adjacent_segment = segments[i+1];
-
-        if (CheckSegment(i) == true)
+        switch (current_status)
         {
+        case GraphSeg::SegmentStatus::NONE:
+          assert(segments.size() == 0);
+          ConstructInitSegment();
+          current_status = GraphSeg::SegmentStatus::INITIALIZED;
           continue;
-        }
-
-        if (IsMergable(current_segment, adjacent_segment))
-        {
-          vector<Vertex> merged_segment = GetMergedSegment(current_segment, adjacent_segment);
-          MarkForward(i);
-
-          // merge if the segment can merge ahead segments
-          for(size_t j = 2; i+j < segments.size() && IsMergable(merged_segment, segments[i+j]); ++j)
+          break;
+        case GraphSeg::SegmentStatus::INITIALIZED:
+          // the number of initialized segments are smaller than needed, this can't create segments
+          if (needed_segment_size != NOT_DEFINED && segments.size() < needed_segment_size) 
           {
-            const auto offspring_segment = segments[i+j];
-            merged_segment = GetMergedSegment(merged_segment, offspring_segment);
-            Mark(i+j);
+            throw std::runtime_error("can't construct needed size segments");
           }
-
-          next_segment.emplace_back(merged_segment);
-        }
-        else
-        {
-          next_segment.emplace_back(current_segment);
-          Mark(i);
+          ConstructMergedSegment();
+          current_status = GraphSeg::SegmentStatus::MERGED;
+          continue;
+          break;
+        case GraphSeg::SegmentStatus::MERGED:
+          // the number of initialized segments are smaller than needed, return prev segments
+          // the number of prev segments are greater than needed_segment_size. THis is truly guaranteed
+          if (needed_segment_size != NOT_DEFINED && segments.size() < needed_segment_size)
+          {
+            current_status = GraphSeg::SegmentStatus::TERMINATED;
+          }
+          ConstructSmallSegment(embedding);
+          current_status = GraphSeg::SegmentStatus::SMALLED;
+          continue;
+          break;
+        case GraphSeg::SegmentStatus::SMALLED:
+          current_status = GraphSeg::SegmentStatus::TERMINATED; 
+          break;
+        default:
+          break;
         }
       }
-      
-      if (CheckSegment(segments.size() - 1) == false)
-      {
-        const auto segment_last_idx = segments.size() - 1;
-        Mark(segment_last_idx);
-        next_segment.emplace_back(segments[segment_last_idx]);
-      }
-
-      segments.clear();
-      InstantiateSegmentChecker(next_segment.size());
-      segments = next_segment;
-     
-#ifdef DEBUG
-      std::cout << "===== Merged Segment =====" << std::endl; 
-      std::cout << segments << std::endl;
-#endif
-
-      ConstructSmallSegment(embedding);
     }
   
   private:
@@ -249,6 +248,62 @@ namespace GraphSeg::internal
 
 #ifdef DEBUG
       std::cout << "===== Initial Segment =====" << std::endl;
+      std::cout << segments << std::endl;
+#endif
+    }
+
+    void ConstructMergedSegment()
+    {
+      // to avoid searching same segment twice, memory searched segment whether it can merge
+      // vector<bool> segment_memo(segments.size(), false);
+      vector<vector<Vertex>> next_segment;
+
+      for (size_t i = 0; i < segments.size() - 1; ++i)
+      {
+        const auto current_segment = segments[i];
+        const auto adjacent_segment = segments[i+1];
+
+        if (CheckSegment(i) == true)
+        {
+          continue;
+        }
+
+        if (IsMergable(current_segment, adjacent_segment))
+        {
+          vector<Vertex> merged_segment = GetMergedSegment(current_segment, adjacent_segment);
+          MarkForward(i);
+
+          // merge if the segment can merge ahead segments
+          for(size_t j = 2; i+j < segments.size() && IsMergable(merged_segment, segments[i+j]); ++j)
+          {
+            const auto offspring_segment = segments[i+j];
+            merged_segment = GetMergedSegment(merged_segment, offspring_segment);
+            Mark(i+j);
+          }
+
+          next_segment.emplace_back(merged_segment);
+        }
+        else
+        {
+          next_segment.emplace_back(current_segment);
+          Mark(i);
+        }
+      }
+      
+      if (CheckSegment(segments.size() - 1) == false)
+      {
+        const auto segment_last_idx = segments.size() - 1;
+        Mark(segment_last_idx);
+        next_segment.emplace_back(segments[segment_last_idx]);
+      }
+
+      segments.clear();
+      InstantiateSegmentChecker(next_segment.size());
+      old_segments = segments;
+      segments = next_segment;
+     
+#ifdef DEBUG
+      std::cout << "===== Merged Segment =====" << std::endl; 
       std::cout << segments << std::endl;
 #endif
     }
@@ -346,6 +401,7 @@ namespace GraphSeg::internal
 
       segments.clear();
       InstantiateSegmentChecker(next_segments.size());
+      old_segments = segments;
       segments = next_segments;
 
 #ifdef DEBUG
