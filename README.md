@@ -35,18 +35,9 @@ PY_SCRIPT_PATH=${HOME}/graphseg-cpp/script PYTHON_PATH=${HOME}/.pyenv/shims/pyth
 
 #include "graphseg/graphseg.hpp"
 
-#include <sstream>
-#include <fstream>
 #include <vector>
 #include <iostream>
 #include <string>
-#include <list>
-#include <set>
-
-#include <codecvt>
-#include <clocale>
-#include <cstdio>
-#include <locale>
 
 using namespace std;
 using namespace GraphSeg;
@@ -92,6 +83,13 @@ int main()
   }
   return 0;
 }
+```
+
+## How to Build
+CMake is used as build config generator, and vcpkg is employed as package management system
+
+```
+cmake -DCMAKE_TOOLCHAIN_FILE=$(cat ~/.vcpkg/vcpkg.path.txt)/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_COMPILER=clang++ ..
 ```
 
 ## References

@@ -96,13 +96,27 @@ namespace GraphSeg
         {
           const auto& v1 = GetVector(term);
           const auto& v2 = GetVector(target_term);
-          if (IsStopWord(v1) || IsStopWord(v2)) continue;
+          if (IsStopWord(v1) || IsStopWord(v2)) 
+          {
+            continue;
+          }
           assert(v1.size() == v2.size());
           auto sim = CosineSimilarity(v1.cbegin(), v1.cend(), v2.cbegin(), v2.cend());
           result += sim*min({InformationContent(term), InformationContent(target_term)});
         }
       }
       return result;
+    }
+
+    /// <summary>
+    /// not to aware sentence length similarity caluculation
+    /// </summary>
+    double NormalizedSimilarity(const SentenceType& sg1, const SentenceType& sg2) const&
+    {
+      const auto sim = GetSimilarity(sg1, sg2);
+      const auto normalized_rel_1 = sim / sg1.GetSize();
+      const auto normalized_rel_2 = sim / sg2.GetSize();
+      return (normalized_rel_1 + normalized_rel_2) / 2;
     }
 
   private:
