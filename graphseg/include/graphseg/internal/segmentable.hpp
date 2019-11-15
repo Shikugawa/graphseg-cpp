@@ -160,9 +160,10 @@ namespace GraphSeg::internal
           break;
         case GraphSeg::SegmentStatus::INITIALIZED:
           // the number of initialized segments are smaller than needed, this can't create segments
-          if (required_segment_num != NOT_DEFINED && segments.size() < required_segment_num) 
+          if (required_segment_num != NOT_DEFINED && segments.size() <= required_segment_num) 
           {
-            throw std::runtime_error("can't construct needed size segments");
+            current_status = GraphSeg::SegmentStatus::TERMINATED;
+            continue;
           }
           ConstructMergedSegment();
           current_status = GraphSeg::SegmentStatus::MERGED;
@@ -170,9 +171,10 @@ namespace GraphSeg::internal
         case GraphSeg::SegmentStatus::MERGED:
           // the number of initialized segments are smaller than needed, return prev segments
           // the number of prev segments are greater than required_segment_num. This is truly guaranteed
-          if (required_segment_num != NOT_DEFINED && segments.size() < required_segment_num)
+          if (required_segment_num != NOT_DEFINED && segments.size() <= required_segment_num)
           {
             current_status = GraphSeg::SegmentStatus::TERMINATED;
+            continue;
           }
           ConstructSmallSegment(embedding);
           current_status = GraphSeg::SegmentStatus::SMALLED;
