@@ -380,7 +380,7 @@ namespace GraphSeg::internal
       }
 
       // if the last segment was not merged
-      if (!CheckSegment(segments.size() - 1))
+      if (!CheckSegment(segments.size() - 1).value())
       {
         const auto last_segment_idx = segments.size() - 1;
         Mark(last_segment_idx);
