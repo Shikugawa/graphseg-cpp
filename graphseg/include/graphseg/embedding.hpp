@@ -18,16 +18,13 @@ namespace GraphSeg
   using namespace rapidjson;
   using namespace internal;
 
-  using std::unordered_map, std::array, std::min, std::sqrt, std::log, 
-        std::pow, std::tuple, std::get, std::make_tuple, std::unique_ptr;
-
   template <int VectorDim, Lang LangType = Lang::EN>
   class Embedding : public Executable<LangType>
   {
   public:
     using Base = Executable<LangType>;
     using SentenceType = Sentence<LangType>;
-    using WordEmbedding = array<double, VectorDim>;
+    using WordEmbedding = std::array<double, VectorDim>;
 
     Embedding() = default;
 
@@ -57,7 +54,7 @@ namespace GraphSeg
     /// </summary>
     void GetWordEmbeddings()
     {
-      const string term_stream = GetTermStream();
+      const std::string term_stream = GetTermStream();
       auto result = Base::Execute("vectorizer.py", term_stream);
       Document doc;
       const auto parse_result = doc.Parse(result.c_str()).HasParseError();
@@ -79,7 +76,7 @@ namespace GraphSeg
     /// <summary>
     /// Get word vector
     /// </summary>
-    inline const WordEmbedding& GetVector(const string& term) const
+    GRAPHSEG_INLINE_CONST WordEmbedding& GetVector(const std::string& term) const
     { 
       return get<0>(words.at(term)); 
     }
@@ -102,7 +99,7 @@ namespace GraphSeg
           }
           assert(v1.size() == v2.size());
           auto sim = CosineSimilarity(v1.cbegin(), v1.cend(), v2.cbegin(), v2.cend());
-          result += sim*min({InformationContent(term), InformationContent(target_term)});
+          result += sim*std::min({InformationContent(term), InformationContent(target_term)});
         }
       }
       return result;
@@ -134,19 +131,19 @@ namespace GraphSeg
         ++a;
         ++b;
       }
-      return qd/(sqrt(q)*sqrt(d));
+      return qd/(std::sqrt(q)*std::sqrt(d));
     }
 
-    double InformationContent(const string& term) const
+    double InformationContent(const std::string& term) const
     {
       const double denominator = frequency->GetFrequency(term) + 1;
       const double numerator = frequency->GetCorpusSize() + frequency->GetTotalCount();
       return -std::log(denominator / numerator);
     }
 
-    string GetTermStream() const
+    std::string GetTermStream() const
     {
-      string s;
+      std::string s;
       for(const auto& word: words)
       {
         s += word.first + " ";
@@ -154,7 +151,7 @@ namespace GraphSeg
       return s;
     }
 
-    bool exists(const string& term)
+    bool exists(const std::string& term)
     {
       for(const auto& _w: words)
       {
@@ -166,17 +163,17 @@ namespace GraphSeg
       return false;
     }
 
-    void InitWordEmbedding(string term)
+    void InitWordEmbedding(std::string term)
     {
       WordEmbedding wm;
       for (size_t j = 0; j < VectorDim; ++j)
       {
         wm[j] = 0.0;
       }
-      words.insert({term, make_tuple(wm, 1)});
+      words.insert({term, std::make_tuple(wm, 1)});
     }
 
-    bool IsStopWord(const array<double, VectorDim>& d) const
+    bool IsStopWord(const WordEmbedding& d) const
     {
       // if d is zero-vector, reguard this term as stop-word
       for(size_t i = 0; i < VectorDim; ++i)
@@ -188,7 +185,7 @@ namespace GraphSeg
 
     std::shared_ptr<Frequency<LangType>> frequency;
     unsigned int termLength;
-    unordered_map<string, tuple<WordEmbedding, unsigned int>> words;
+    std::unordered_map<std::string, std::tuple<WordEmbedding, unsigned int>> words;
   };
 }
 

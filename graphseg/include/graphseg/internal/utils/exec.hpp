@@ -9,19 +9,17 @@
 
 namespace GraphSeg::internal::utils
 {
-  using std::array, std::shared_ptr, std::string;
-
   static constexpr auto BUFFER_SIZE = 256;
   
-  string exec(const char* cmd, int& code)
+  std::string exec(const char* cmd, int& code)
   {
-    string stdout;
-    shared_ptr<FILE> pipe(popen(cmd, "r"), [&](FILE* p) {code = pclose(p);});
+    std::string stdout;
+    std::shared_ptr<FILE> pipe(popen(cmd, "r"), [&](FILE* p) {code = pclose(p);});
     if(!pipe)
     {
       return stdout;
     }
-    array<char, BUFFER_SIZE> buf;
+    std::array<char, BUFFER_SIZE> buf;
     while(!feof(pipe.get()))
     {
       if(fgets(buf.data(), buf.size(), pipe.get()) != nullptr)

@@ -7,8 +7,6 @@
 
 namespace GraphSeg::internal::utils
 {
-  using std::vector, std::string;
-
   /// <summary>
   /// detect if it is symbol or not from MeCab parse result
   /// Currently, I've not use this because it is not needed
@@ -16,7 +14,7 @@ namespace GraphSeg::internal::utils
   /// </summary>
   bool IsSymbol(const char* feature, int pointer)
   {
-    string term;
+    std::string term;
     pointer++;
     while (feature[pointer] != ',')
     {
@@ -36,10 +34,10 @@ namespace GraphSeg::internal::utils
   /// <summary>
   /// Detect terms from MeCab parse result
   /// </summary>  
-  const string ExtractTerm(const char* feature)
+  const std::string ExtractTerm(const char* feature)
   {
-    string sentence;
-    string term;
+    std::string sentence;
+    std::string term;
     int idx = 0;
     bool is_term = false;
     char prev_char;

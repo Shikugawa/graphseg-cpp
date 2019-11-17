@@ -14,24 +14,22 @@
 
 namespace GraphSeg
 {
-  using std::string, std::wstring, std::vector, std::is_same_v;
-
   template <Lang LangType = Lang::EN>
   class Sentence
   {
-    using iterator = vector<string>::iterator;
-    using const_iterator = vector<string>::const_iterator;
+    using iterator = std::vector<std::string>::iterator;
+    using const_iterator = std::vector<std::string>::const_iterator;
 
-    vector<char> deliminator_set;
+    std::vector<char> deliminator_set;
 
   public:
-    Sentence(string&& s) : sentence(std::move(s))
+    Sentence(std::string&& s) : sentence(std::move(s))
     {
       deliminator_set.emplace_back(' ');
       CreateTerm();
     }
 
-    Sentence(const string& s) : sentence(s)
+    Sentence(const std::string& s) : sentence(s)
     {
       deliminator_set.emplace_back(' ');
       CreateTerm();
@@ -60,12 +58,12 @@ namespace GraphSeg
     /// <summary>
     /// Get all term retrieved from sentences
     /// </summary>
-    const vector<string>& GetTerms() const& 
+    GRAPHSEG_INLINE_CONST std::vector<std::string>& GetTerms() const& 
     {
       return terms; 
     }
 
-    vector<string> GetTerms() &&
+    GRAPHSEG_INLINE_CONST std::vector<std::string> GetTerms() &&
     {
       return std::move(terms);
     }
@@ -73,7 +71,7 @@ namespace GraphSeg
     /// <summary>
     /// Get term size
     /// </summary>
-    size_t GetSize()
+    GRAPHSEG_INLINE_CONST size_t GetSize()
     {
       return terms.size(); 
     }
@@ -81,12 +79,12 @@ namespace GraphSeg
     /// <summary>
     /// Get all sentence (rvalue & lvalue)
     /// </summary>
-    const string& GetText() const& 
+    GRAPHSEG_INLINE_CONST std::string& GetText() const& 
     { 
       return sentence; 
     }
 
-    string GetText() &&
+    GRAPHSEG_INLINE_CONST std::string GetText() &&
     { 
       return std::move(sentence); 
     }
@@ -113,7 +111,7 @@ namespace GraphSeg
     /// <summary>
     /// Operator : Get term with index
     /// </summary>
-    const string& operator[](size_t idx)
+    GRAPHSEG_INLINE_CONST std::string& operator[](size_t idx)
     { 
       return terms[idx]; 
     }
@@ -121,7 +119,7 @@ namespace GraphSeg
   private:
     void CreateTerm()
     {
-      string item;
+      std::string item;
       for (auto itr = sentence.begin(); itr != sentence.end(); ++itr)
       {
         if (std::find(deliminator_set.begin(), deliminator_set.end(), *itr) != deliminator_set.end())
@@ -135,8 +133,8 @@ namespace GraphSeg
       terms.emplace_back(item);
     }
 
-    string sentence;
-    vector<string> terms;
+    std::string sentence;
+    std::vector<std::string> terms;
   };
 } // GraohSeg
 

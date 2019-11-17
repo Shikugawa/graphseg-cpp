@@ -13,7 +13,6 @@
 
 namespace GraphSeg::internal
 {
-  using std::unordered_map, std::string, std::enable_if_t, std::is_same_v;
   using namespace rapidjson;
 
   template <Lang LangType = Lang::EN>
@@ -21,12 +20,12 @@ namespace GraphSeg::internal
   {
     using Base = Executable<LangType>;
   public:
-    explicit Frequency(const string& stream)
+    explicit Frequency(const std::string& stream)
     {
       AddFrequency(stream);
     }
 
-    explicit Frequency(string&& stream)
+    explicit Frequency(std::string&& stream)
     {
       AddFrequency(std::move(stream));
     }
@@ -34,7 +33,7 @@ namespace GraphSeg::internal
     /// <summary>
     /// get term frequency ratio
     /// </summary>
-    inline const unsigned int GetFrequency(const string& term)
+    GRAPHSEG_INLINE_CONST unsigned int GetFrequency(const std::string& term)
     {
       return frequency_count[term];
     }
@@ -42,7 +41,7 @@ namespace GraphSeg::internal
     /// <summary>
     /// number of terms
     /// </summary>
-    inline const unsigned int& GetTotalCount() noexcept
+    GRAPHSEG_INLINE_CONST unsigned int& GetTotalCount() noexcept
     { 
       return total_count; 
     }
@@ -50,13 +49,13 @@ namespace GraphSeg::internal
     /// <summary>
     /// get corpus size
     /// </summary>
-    inline const unsigned int& GetCorpusSize() noexcept
+    GRAPHSEG_INLINE_CONST unsigned int& GetCorpusSize() noexcept
     { 
       return corpus_size; 
     }
 
   private:
-    template <typename T, enable_if_t<is_same_v<string, std::decay_t<T>>>* = nullptr>
+    template <typename T, std::enable_if_t<std::is_same_v<std::string, std::decay_t<T>>>* = nullptr>
     void AddFrequency(T&& stream)
     {
       auto result = Base::Execute("frequency.py", std::forward<T>(stream));
@@ -94,7 +93,7 @@ namespace GraphSeg::internal
     /// <summary>
     /// term count
     /// </summary>
-    unordered_map<string, unsigned int> frequency_count;
+    std::unordered_map<std::string, unsigned int> frequency_count;
   };
 }
 

@@ -9,8 +9,6 @@
 
 namespace GraphSeg::internal::utils
 {
-  using std::set, std::inserter;
-
   template <typename T, typename = std::enable_if_t<is_iterable<T>::value>*>
   T operator&(const T& v1, const T& v2)
   {

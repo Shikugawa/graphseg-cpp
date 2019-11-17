@@ -8,7 +8,6 @@
 
 namespace GraphSeg::graph
 {
-  using std::vector;
   using namespace GraphSeg;
 
   /// <summary>
@@ -21,7 +20,7 @@ namespace GraphSeg::graph
     using SentenceType = Sentence<LangType>;
 
   private:
-    const T& Derived() const&
+    GRAPHSEG_INLINE_CONST T& Derived() const&
     {
       return static_cast<const T&>(*this);
     }
@@ -35,22 +34,22 @@ namespace GraphSeg::graph
     /// <summary>
     /// get specified sentence
     /// </summary>
-    inline const SentenceType& GetSentence(size_t idx) const&
+    GRAPHSEG_INLINE_CONST SentenceType& GetSentence(size_t idx) const&
     { 
       return sentences[idx]; 
     }
 
   protected:
-    SegmentGraph(const vector<SentenceType>& _sentences) : sentences(_sentences)
+    SegmentGraph(const std::vector<SentenceType>& _sentences) : sentences(_sentences)
     {}
 
-    SegmentGraph(vector<SentenceType>&& _sentences) : sentences(std::move(_sentences))
+    SegmentGraph(std::vector<SentenceType>&& _sentences) : sentences(std::move(_sentences))
     {}
 
     /// <summary>
     /// all of sentences
     /// </summary>
-    vector<SentenceType> sentences;
+    std::vector<SentenceType> sentences;
   };
 }
 

@@ -12,8 +12,6 @@
 
 namespace GraphSeg
 {
-  using std::wstring, std::string, std::wifstream, std::locale, std::wstringstream;
-
   template <Lang LangType = Lang::EN>  
   class TextProcessor : public Language<LangType>
   {
@@ -25,23 +23,18 @@ namespace GraphSeg
       for (const auto& sentence : wstringSentences)
       {
         sentences.emplace_back(
-          Sentence<LangType>(
-            Base::SentenceTagger(
-              BasicStringConverter(sentence)
-            )
-          )
-        );
+          Sentence<LangType>(Base::SentenceTagger(BasicStringConverter(sentence))));
       }
     }
 
-    const vector<Sentence<LangType>>& GetSentences()
+    GRAPHSEG_INLINE_CONST std::vector<Sentence<LangType>>& GetSentences()
     {
       return sentences;
     }
 
   private:
-    const wstring wText;
-    vector<Sentence<LangType>> sentences;
+    const std::wstring wText;
+    std::vector<Sentence<LangType>> sentences;
 
     string BasicStringConverter(const std::wstring& wstr)
     {
@@ -52,15 +45,15 @@ namespace GraphSeg
     wstring ReadTextFile(const std::string& path)
     {
       const auto localeStr = Base::Locale();
-      wifstream wif(path);
+      std::wifstream wif(path);
       wif.imbue(locale(localeStr));
       std::wcout.imbue(locale(localeStr));
-      wstringstream wss;
+      std::wstringstream wss;
       wss << wif.rdbuf();
       return wss.str();
     }
 
-    vector<wstring> TextTranscoder()
+    std::vector<std::wstring> TextTranscoder()
     {
       auto processor = ArticleProcessor<LangType>(wText);
       return processor.Execute();

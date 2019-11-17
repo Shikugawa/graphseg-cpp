@@ -18,9 +18,7 @@
 namespace GraphSeg::graph
 {
   using namespace GraphSeg::internal::utils;
-  using std::set, std::unordered_map, std::make_pair, std::string, std::set_intersection,
-        std::set_union, std::set_difference, std::inserter, std::basic_ostream;
-  
+
   /// <summary>
   /// Undirected graph based on passed sentences
   /// </summary>
@@ -29,19 +27,19 @@ namespace GraphSeg::graph
   {
   public:
     using Vertex = unsigned int;
-    using VertexSet = set<Vertex>;
+    using VertexSet = std::set<Vertex>;
     using Edge = std::pair<Vertex, double>;
     using Base = SegmentGraph<UndirectedGraph<LangType>, LangType>; 
 
     explicit UndirectedGraph() = default;
 
-    explicit UndirectedGraph(const vector<typename Base::SentenceType>& _sentences)
+    explicit UndirectedGraph(const std::vector<typename Base::SentenceType>& _sentences)
       : Base(_sentences), graph_size(_sentences.size())
     {
       graph.resize(graph_size*graph_size);
     }
 
-    explicit UndirectedGraph(vector<typename Base::SentenceType>&& _sentences)
+    explicit UndirectedGraph(std::vector<typename Base::SentenceType>&& _sentences)
       : Base(std::move(_sentences)), graph_size(_sentences.size())
     {
       graph.resize(graph_size*graph_size);
@@ -54,7 +52,7 @@ namespace GraphSeg::graph
     {
       for (size_t i = 0; i < graph_size; ++i)
       {
-        graph.emplace_back(vector<Edge>());
+        graph.emplace_back(std::vector<Edge>());
       }      
     }
 
@@ -71,12 +69,12 @@ namespace GraphSeg::graph
     /// <summary>
     /// get graph size
     /// </summary>
-    inline const Vertex& GetGraphSize() const&
+    GRAPHSEG_INLINE_CONST Vertex& GetGraphSize() const&
     {
       return graph_size;
     }
 
-    inline Vertex GetGraphSize() &&
+    GRAPHSEG_INLINE_CONST Vertex GetGraphSize() &&
     {
       return std::move(graph_size);
     }
@@ -86,34 +84,34 @@ namespace GraphSeg::graph
     /// </summary>
     void SetMaximumClique()
     {
-      vector<Vertex> tmp(graph_size);
+      std::vector<Vertex> tmp(graph_size);
       int i = -1;
       std::generate(tmp.begin(), tmp.end(), [&i](){ ++i; return i; });
-      BronKerbosch(set<Vertex>(), set<Vertex>(tmp.begin(), tmp.end()), set<Vertex>());
+      BronKerbosch(std::set<Vertex>(), std::set<Vertex>(tmp.begin(), tmp.end()), std::set<Vertex>());
       ConstructMaximumCliqueArrayContainer();
 #ifdef DEBUG
       std::cout << "===== Retrieved Maximum Cliques =====" << std::endl;
-      std::cout << max_cliques_set << std::endl;
+      std::cout << max_cliques_std::set << std::endl;
 #endif
     }
 
     /// <summary>
     /// get caluclated all of maximum cliques
     /// </summary>
-    inline const set<VertexSet>& GetMaximumClique() const&
+    GRAPHSEG_INLINE_CONST std::set<VertexSet>& GetMaximumClique() const&
     {
-      return max_cliques_set;
+      return max_cliques_std::set;
     }
 
-    inline set<VertexSet> GetMaximumClique() &&
+    GRAPHSEG_INLINE_CONST std::set<VertexSet> GetMaximumClique() &&
     {
-      return std::move(max_cliques_set);
+      return std::move(max_cliques_std::set);
     }
 
     /// <summary>
     /// get caluclated maximum clique from internal efficient data structure
     /// </summary>
-    inline const vector<vector<Vertex>>& GetMaximumClique(size_t idx)
+    GRAPHSEG_INLINE_CONST std::vector<std::vector<Vertex>>& GetMaximumClique(size_t idx)
     {
       return max_cliques_internal[idx];
     }
@@ -121,7 +119,7 @@ namespace GraphSeg::graph
     /// <summary>
     /// get node number and weight that passed adjacent nodes
     /// </summary>
-    inline const vector<Edge>& operator[](size_t idx) const& 
+    GRAPHSEG_INLINE_CONST std::vector<Edge>& operator[](size_t idx) const& 
     { 
       return graph[idx]; 
     }
@@ -143,21 +141,21 @@ namespace GraphSeg::graph
       graph[src].emplace_back(pair);
     }
 
-    void BronKerbosch(set<Vertex> clique, set<Vertex> candidates, set<Vertex> excluded)
+    void BronKerbosch(std::set<Vertex> clique, std::set<Vertex> candidates, std::set<Vertex> excluded)
     {
       if (candidates.empty() && excluded.empty())
       { 
-        max_cliques_set.insert(clique);
+        max_cliques_std::set.insert(clique);
         return;
       }
 
       // TODO(rei.shimizu): It may be invalid solution to resolve iterator breakdown problem
-      set<Vertex> candidates_tmp;
+      std::set<Vertex> candidates_tmp;
       for (auto itr2 = candidates.begin(); itr2 != candidates.end(); ++itr2)
       {
         if (candidates_tmp.find(*itr2) != candidates_tmp.end()) break;
         auto v = *itr2;
-        auto clique_t = clique + set<Vertex>({v});
+        auto clique_t = clique + std::set<Vertex>({v});
         auto candidates_t = candidates & GetNeighbors(v);
         auto excluded_t = excluded & GetNeighbors(v);
         
@@ -175,20 +173,20 @@ namespace GraphSeg::graph
     void ConstructMaximumCliqueArrayContainer()
     {
       max_cliques_internal.resize(graph_size);
-      for (auto& max_clique: max_cliques_set)
+      for (auto& max_clique: max_cliques_std::set)
       {
         for (auto& clique_vertex: max_clique)
         {
           max_cliques_internal[clique_vertex].emplace_back(
-            vector<Vertex>(max_clique.begin(), max_clique.end())
+            std::vector<Vertex>(max_clique.begin(), max_clique.end())
           );
         }
       }
     }
     
-    set<Vertex> GetNeighbors(Vertex idx)
+    std::set<Vertex> GetNeighbors(Vertex idx)
     {
-      set<Vertex> tmp;
+      std::set<Vertex> tmp;
       for(const auto& node: graph[idx])
       {
         tmp.emplace(node.first);
@@ -199,17 +197,17 @@ namespace GraphSeg::graph
     /// <summary>
     /// Base graph
     /// </summary>
-    vector<vector<Edge>> graph;
+    std::vector<std::vector<Edge>> graph;
 
     /// <summary>
-    /// set of maximum clique
+    /// std::set of maximum clique
     /// </summary>
-    set<VertexSet> max_cliques_set;
+    std::set<VertexSet> max_cliques_std::set;
 
     /// <summary>
     /// Data structure to get maximum clique with O(N)
     /// <summary>
-    vector<vector<vector<Vertex>>> max_cliques_internal;
+    std::vector<std::vector<std::vector<Vertex>>> max_cliques_internal;
 
     /// <summary>
     /// current graph size

@@ -7,8 +7,6 @@
 
 namespace GraphSeg
 {
-  using std::vector, std::wstring;
-
   template <Lang LangType>
   class ArticleProcessor
   {
@@ -21,7 +19,7 @@ namespace GraphSeg
   class ArticleProcessor<Lang::JP>
   {
   public:
-    ArticleProcessor(const wstring& _article) : article(_article)
+    ArticleProcessor(const std::wstring& _article) : article(_article)
     {
     }
 
@@ -52,9 +50,9 @@ namespace GraphSeg
     }
 
   public:
-    const vector<std::wstring> Execute()
+    const std::vector<std::wstring> Execute()
     {
-      vector<std::wstring> sentences;
+      std::vector<std::wstring> sentences;
       while (current_idx < article.size())
       {
         // カッコは基本的に全角

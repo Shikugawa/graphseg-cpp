@@ -1,6 +1,8 @@
 #ifndef GRAPHSEG_GRAPHSEG_HPP
 #define GRAPHSEG_GRAPHSEG_HPP
 
+#define GRAPHSEG_INLINE_CONST inline const
+
 #include "graphseg/graph/graph_formatter.hpp"
 #include "graphseg/graph/undirected_graph.hpp"
 #include "graphseg/segmentation_container.hpp"

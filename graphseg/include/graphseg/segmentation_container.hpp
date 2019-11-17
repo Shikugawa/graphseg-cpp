@@ -10,7 +10,6 @@
 namespace GraphSeg
 {
   using namespace graph;
-  using std::vector, std::make_unique, std::shared_ptr, std::make_shared;
 
   template <class Graph, int VectorDim, Lang LangType = Lang::EN>
   class SegmentOperator
@@ -46,13 +45,13 @@ namespace GraphSeg
     /// <summary>
     /// return segment
     /// </summary>
-    inline const auto& GetSegment() const&
+    GRAPHSEG_INLINE_CONST auto& GetSegment() const&
     {
       assert(segmentable);
       return segmentable->segments;
     }
 
-    inline auto GetSegment() &&
+    GRAPHSEG_INLINE_CONST auto GetSegment() &&
     {
       assert(segmentable);
       return std::move(segmentable->segments);
@@ -62,7 +61,7 @@ namespace GraphSeg
     /// <summary>
     /// entity of segmentation operation 
     /// </summary>
-    unique_ptr<internal::Segmentable<Graph, VectorDim, LangType>> segmentable;
+    std::unique_ptr<internal::Segmentable<Graph, VectorDim, LangType>> segmentable;
 
     /// <summary>
     /// number of segments
@@ -151,7 +150,7 @@ namespace GraphSeg
     {
       const auto graph_size = graph->GetGraphSize();
       assert(graph_size > 1);
-      vector<vector<int>> memo(graph_size, vector<int>(graph_size, 0));
+      std::vector<std::vector<int>> memo(graph_size, std::vector<int>(graph_size, 0));
       for (int i = 0; i < graph_size; ++i)
       {
         for (int j = 0; j < graph_size; ++j)
@@ -184,7 +183,7 @@ namespace GraphSeg
     /// <summary>
     /// sentence graph
     /// </summary>
-    shared_ptr<Graph> graph;
+    std::shared_ptr<Graph> graph;
 
     /// <summary>
     /// thershold whether connect nodes each other
@@ -204,12 +203,12 @@ namespace GraphSeg
     using SentenceType = Sentence<LangType>;
 
   public:
-    SegmentationContainer(const vector<SentenceType>& sentences, const Embedding<VectorDim, LangType>& em)
-      : GraphOpr(make_shared<Graph>(sentences)), EmbeddingOpr(em)
+    SegmentationContainer(const std::vector<SentenceType>& sentences, const Embedding<VectorDim, LangType>& em)
+      : GraphOpr(std::make_shared<Graph>(sentences)), EmbeddingOpr(em)
     {}
 
-    SegmentationContainer(vector<SentenceType>&& sentences, const Embedding<VectorDim, LangType>& em) 
-      : GraphOpr(make_shared<Graph>(sentences)), EmbeddingOpr(em)
+    SegmentationContainer(std::vector<SentenceType>&& sentences, const Embedding<VectorDim, LangType>& em) 
+      : GraphOpr(std::make_shared<Graph>(sentences)), EmbeddingOpr(em)
     {}
 
     /// <summary>
